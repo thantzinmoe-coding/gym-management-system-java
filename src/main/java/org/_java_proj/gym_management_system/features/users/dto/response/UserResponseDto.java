@@ -1,0 +1,9 @@
+package org._java_proj.gym_management_system.features.users.dto.response;
+
+import lombok.Data;
+
+@Data
+public class UserResponseDto {
+    private String email;
+    private String status;
+}
