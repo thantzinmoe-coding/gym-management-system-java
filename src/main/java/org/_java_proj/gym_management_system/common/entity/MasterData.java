@@ -34,13 +34,13 @@ public abstract class MasterData {
 
     @Column
     private LocalDateTime deletedAt;
+//
+//    @Column
+//    @Convert(converter = StatusConverter.class)
+//    private Status status = Status.ACTIVE;
 
-    @Column
-    @Convert(converter = StatusConverter.class)
-    private Status status = Status.ACTIVE;
-
-    public void delete() {
-        this.setStatus(Status.INACTIVE);
-        this.setDeletedAt(LocalDateTime.now());
-    }
+//    public void delete() {
+//        this.setStatus(Status.INACTIVE);
+//        this.setDeletedAt(LocalDateTime.now());
+//    }
 }

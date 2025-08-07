@@ -1,0 +1,20 @@
+package org._java_proj.gym_management_system.features.feedback.dto.response;
+
+
+
+import lombok.Data;
+import org._java_proj.gym_management_system.common.constant.Status;
+import org._java_proj.gym_management_system.model.User;
+
+import java.time.LocalDate;
+
+@Data
+public class FeedbackResponseDto {
+
+    private User member;
+    private User trainer;
+    private String comment;
+    private int ratingPoints;
+    private LocalDate date;
+    // Field name used in the latest code
+}
