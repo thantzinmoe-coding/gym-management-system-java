@@ -15,9 +15,22 @@ public class BMI extends MasterData {
     @Column(nullable = false)
     private double height;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    private User member;
+    @Column(nullable = false)
+    private String healthInfo;
+
+    @Column(nullable = false)
+    private String goal;
+
+    @Column(name = "entity_id")
+    private Long entityId;
 
     public BMI() {}
+
+    public BMI(double weight, double height, String healthInfo, String goal, Long entityId) {
+        this.weight = weight;
+        this.height = height;
+        this.healthInfo = healthInfo;
+        this.goal = goal;
+        this.entityId = entityId;
+    }
 }
