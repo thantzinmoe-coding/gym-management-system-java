@@ -21,6 +21,7 @@ public class Feedback extends MasterData { // Inherits from MasterData
     @Column(nullable = false) // Assuming ratingPoints is required
     private Integer ratingPoints;
 
+
     // Relationships are present in your entity, which is good for a full system,
     // but for just testing the feedback submission POST, they aren't strictly needed
     // for the basic input mapping.

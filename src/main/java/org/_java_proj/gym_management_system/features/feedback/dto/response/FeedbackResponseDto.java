@@ -11,8 +11,8 @@ import java.time.LocalDate;
 @Data
 public class FeedbackResponseDto {
 
-    private User member;
-    private User trainer;
+    private UserSummaryDto member;
+    private UserSummaryDto trainer;
     private String comment;
     private int ratingPoints;
     private LocalDate date;
