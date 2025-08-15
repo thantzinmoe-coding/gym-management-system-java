@@ -48,6 +48,9 @@ public class User extends MasterData {
     @OneToOne(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Chat receiver;
 
+    @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private AssignedPackage trainer;
+
     public User() {}
 
     public void giveRating(final Feedback feedback) {
