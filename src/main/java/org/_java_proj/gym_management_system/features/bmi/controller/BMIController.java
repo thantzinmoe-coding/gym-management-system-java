@@ -96,7 +96,7 @@ public class BMIController {
                     content = @Content(schema = @Schema(implementation = BMICreateRequest.class))
             ),
             parameters = {
-                    @Parameter(name = "id", description = "Address ID", required = true)
+                    @Parameter(name = "id", description = "BMI ID", required = true)
             },
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "BMI updated successfully"),

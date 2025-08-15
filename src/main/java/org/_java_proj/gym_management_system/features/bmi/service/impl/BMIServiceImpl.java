@@ -99,7 +99,7 @@ public class BMIServiceImpl implements BMIService {
     public PaginatedApiResponse<BMIDetailResponseDto> getBMIsDetail(Pageable pageable, Long userId) {
         Page<BMI> page = bmiRepository.findByEntityId(userId,pageable);
         List<BMIDetailResponseDto> data = page.getContent().stream()
-                .map(address -> modelMapper.map(address, BMIDetailResponseDto.class))
+                .map(bmi -> modelMapper.map(bmi, BMIDetailResponseDto.class))
                 .toList();
         PaginationMeta meta = new PaginationMeta();
         meta.setTotalItems(page.getTotalElements());

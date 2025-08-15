@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
-import org._java_proj.gym_management_system.features.bmi.dto.request.BMICreateRequest;
 import org._java_proj.gym_management_system.features.managePackage.dto.request.GymPackageCreateRequest;
 import org._java_proj.gym_management_system.features.managePackage.dto.request.GymPackageUpdateRequest;
 import org._java_proj.gym_management_system.features.managePackage.dto.response.GymPackageResponseDto;
