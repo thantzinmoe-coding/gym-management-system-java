@@ -4,8 +4,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginationMeta;
 import org._java_proj.gym_management_system.features.feedback.dto.request.FeedbackUpdateRequest;
-import org._java_proj.gym_management_system.features.feedback.dto.response.UserSummaryDto;
 import org._java_proj.gym_management_system.features.feedback.service.FeedbackService;
 import org._java_proj.gym_management_system.features.feedback.dto.request.FeedbackCreateRequest;
 import org._java_proj.gym_management_system.features.feedback.dto.response.FeedbackResponseDto;
@@ -14,9 +15,12 @@ import org._java_proj.gym_management_system.features.users.repository.UserReposi
 import org._java_proj.gym_management_system.model.Feedback; // Corrected import for Feedback entity
 import org._java_proj.gym_management_system.model.User;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -37,27 +41,29 @@ public class FeedbackServiceImpl implements FeedbackService {
         final User trainer  = userRepository.findById(request.getTrainer_id())
                 .orElseThrow(() -> new EntityNotFoundException("Trainer not found."));
 
+        LocalDate date = LocalDate.now();
         // Create and populate Feedback entity FIRST
         Feedback feedback = new Feedback();
-        feedback.setUser(member);
+        feedback.setMember(member);
         feedback.setTrainer(trainer);
         feedback.setComment(request.getComment());
         feedback.setRatingPoints(request.getRatingPoints());
-        feedback.setDate(request.getDate());
+        feedback.setDate(date);
 
         // Save the Feedback entity
         feedbackRepository.save(feedback);
 
         // Map to DTO for response using UserSummaryDto
-        FeedbackResponseDto dto = new FeedbackResponseDto();
-        dto.setMember(UserSummaryDto.fromUser(feedback.getUser()));     // Use DTO factory method
-        dto.setTrainer(UserSummaryDto.fromUser(feedback.getTrainer())); // Use DTO factory method
-        dto.setComment(feedback.getComment());
-        dto.setRatingPoints(feedback.getRatingPoints());
-        dto.setDate(feedback.getDate());
+//        FeedbackResponseDto dto = new FeedbackResponseDto();
+//        dto.setMember(UserSummaryDto.fromUser(feedback.getUser()));     // Use DTO factory method
+//        dto.setTrainer(UserSummaryDto.fromUser(feedback.getTrainer())); // Use DTO factory method
+//        dto.setComment(feedback.getComment());
+//        dto.setRatingPoints(feedback.getRatingPoints());
+//        dto.setDate(feedback.getDate());
         // Map other fields from Feedback entity to DTO if needed (e.g., id, createdAt)
         // Example: dto.setId(feedback.getId());
 
+        FeedbackResponseDto dto = modelMapper.map(feedback, FeedbackResponseDto.class);
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
@@ -65,16 +71,15 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .message("Feedback submitted successfully.")
                 .build();
     }
+
+
+
     @Override
     public ApiResponse getFeedback(Long id) {
         Feedback feedback = feedbackRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
-        FeedbackResponseDto dto = new FeedbackResponseDto();
-        dto.setMember(UserSummaryDto.fromUser(feedback.getUser()));
-        dto.setTrainer(UserSummaryDto.fromUser(feedback.getTrainer()));
-        dto.setComment(feedback.getComment());
-        dto.setRatingPoints(feedback.getRatingPoints());
-        dto.setDate(feedback.getDate());
+
+        FeedbackResponseDto dto = modelMapper.map(feedback, FeedbackResponseDto.class);
 
         return ApiResponse.builder()
                 .success(1)
@@ -83,43 +88,45 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .message("Feedback fetched.")
                 .build();
     }
+
+
     @Override
-    public ApiResponse listFeedbacks() {
-        List<FeedbackResponseDto> dtos = feedbackRepository.findAll().stream()
-                .map(fb -> {
-                    FeedbackResponseDto dto = new FeedbackResponseDto();
-                    dto.setMember(UserSummaryDto.fromUser(fb.getUser()));
-                    dto.setTrainer(UserSummaryDto.fromUser(fb.getTrainer()));
-                    dto.setComment(fb.getComment());
-                    dto.setRatingPoints(fb.getRatingPoints());
-                    dto.setDate(fb.getDate());
-                    return dto;
-                })
+    public PaginatedApiResponse<FeedbackResponseDto> listFeedbacks(Pageable pageable) {
+        Page<Feedback> page = feedbackRepository.getAllFeedbacks(pageable);
+
+        List<FeedbackResponseDto> data = page.getContent().stream()
+                .map(feedback -> modelMapper.map(feedback, FeedbackResponseDto.class))
                 .toList();
-        return ApiResponse.builder()
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(page.getTotalElements());
+        meta.setTotalPages(page.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<FeedbackResponseDto>builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(Map.of("feedbacks", dtos))
-                .message("All feedback entries fetched.")
+                .message("Fetched successfully")
+                .meta(meta)
+                .data(data)
                 .build();
     }
+
+
+
     @Override
     @Transactional
     public ApiResponse updateFeedback(Long id, FeedbackUpdateRequest request) {
         Feedback feedback = feedbackRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Feedback not found"));
 
+        LocalDate date = LocalDate.now();
         if (request.getComment() != null) feedback.setComment(request.getComment());
         if (request.getRatingPoints() != null) feedback.setRatingPoints(request.getRatingPoints());
-        if (request.getDate() != null) feedback.setDate(request.getDate());
+        feedback.setDate(date);
 
         feedbackRepository.save(feedback);
-        FeedbackResponseDto dto = new FeedbackResponseDto();
-        dto.setMember(UserSummaryDto.fromUser(feedback.getUser()));
-        dto.setTrainer(UserSummaryDto.fromUser(feedback.getTrainer()));
-        dto.setComment(feedback.getComment());
-        dto.setRatingPoints(feedback.getRatingPoints());
-        dto.setDate(feedback.getDate());
+        FeedbackResponseDto dto = modelMapper.map(feedback, FeedbackResponseDto.class);
 
         return ApiResponse.builder()
                 .success(1)
@@ -128,6 +135,8 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .message("Feedback updated successfully.")
                 .build();
     }
+
+
     @Override
     @Transactional
     public ApiResponse deleteFeedback(Long id) {

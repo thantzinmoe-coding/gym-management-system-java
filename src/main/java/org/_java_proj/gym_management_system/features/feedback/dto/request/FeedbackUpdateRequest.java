@@ -7,7 +7,6 @@ import lombok.Data;
 public class FeedbackUpdateRequest {
     private String comment;
     private Integer ratingPoints;
-    private LocalDate date;
 
     // If you want to allow updating member/trainer, add their IDs too
 }

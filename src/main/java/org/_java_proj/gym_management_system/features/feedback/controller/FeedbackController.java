@@ -1,14 +1,19 @@
 package org._java_proj.gym_management_system.features.feedback.controller;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
 import org._java_proj.gym_management_system.features.feedback.dto.request.FeedbackCreateRequest;
 import org._java_proj.gym_management_system.features.feedback.dto.request.FeedbackUpdateRequest;
+import org._java_proj.gym_management_system.features.feedback.dto.response.FeedbackResponseDto;
 import org._java_proj.gym_management_system.features.feedback.service.FeedbackService;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,12 +44,30 @@ public class FeedbackController {
         final ApiResponse response = feedbackService.getFeedback(id);
         return ResponseUtils.buildResponse(request, response);
     }
+
+
     @GetMapping
-    @Operation(summary = "List all feedback", description = "Fetch all feedback entries")
-    public ResponseEntity<ApiResponse> listFeedbacks(HttpServletRequest request) {
-        final ApiResponse response = feedbackService.listFeedbacks();
-        return ResponseUtils.buildResponse(request, response);
+    @Operation(
+            summary = "List all feedback",
+            description = "Fetch all feedback entries",
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Fetched successfully"),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Gym package not found")
+            }
+    )
+    public ResponseEntity<PaginatedApiResponse<FeedbackResponseDto>> listFeedbacks(
+            @Parameter(description = "Page number")
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Page size")
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        final PaginatedApiResponse<FeedbackResponseDto> response = feedbackService.listFeedbacks(pageable);
+        return ResponseUtils.buildPaginatedResponse(request, response);
     }
+
+
     @PatchMapping("/{id}")
     @Operation(summary = "Update Feedback", description = "Update an existing feedback entry")
     public ResponseEntity<ApiResponse> updateFeedback(
@@ -55,6 +78,8 @@ public class FeedbackController {
         final ApiResponse response = feedbackService.updateFeedback(id, updateRequest);
         return ResponseUtils.buildResponse(request, response);
     }
+
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Feedback", description = "Delete a feedback entry by ID")
     public ResponseEntity<ApiResponse> deleteFeedback(

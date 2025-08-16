@@ -2,13 +2,15 @@ package org._java_proj.gym_management_system.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData; // Assuming this is a valid base class
 
 import java.time.LocalDate;
 
 @Entity
-@Data // Lombok generates getters, setters, etc.
-@Table
+@Getter
+@Setter
 public class Feedback extends MasterData { // Inherits from MasterData
 
     @Column(nullable = false)
@@ -26,8 +28,8 @@ public class Feedback extends MasterData { // Inherits from MasterData
     // but for just testing the feedback submission POST, they aren't strictly needed
     // for the basic input mapping.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "member_id", nullable = false)
+    private User member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_id", nullable = false)
@@ -37,11 +39,11 @@ public class Feedback extends MasterData { // Inherits from MasterData
     public Feedback() {}
 
     // Constructor used in your latest provided Feedback.java
-    public Feedback(final LocalDate date, final String comment, final Integer ratingPoints, final User user, final User trainer) {
+    public Feedback(final LocalDate date, final String comment, final Integer ratingPoints, final User member, final User trainer) {
         this.date = date;
         this.comment = comment;
         this.ratingPoints = ratingPoints;
-        this.user = user;
+        this.member = member;
         this.trainer = trainer;
 
     }

@@ -11,6 +11,5 @@ public class FeedbackCreateRequest {
     private int ratingPoints;
     private Long member_id;
     private Long trainer_id;
-    private LocalDate date;
 
 }

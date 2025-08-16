@@ -66,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/v1/gym-package/**").permitAll()
                         .requestMatchers("/api/v1/schedule/**").permitAll()
+                        .requestMatchers("/api/v1/feedback/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
