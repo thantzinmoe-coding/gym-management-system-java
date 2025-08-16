@@ -17,11 +17,16 @@ public class Schedule extends MasterData {
     private String endTime;
 
     @Column(nullable = false)
-    private String days;
+    private String day;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "gymPackage_id", nullable = false, unique = true)
+    // ✅ Many schedules belong to one package
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gymPackage_id", nullable = false)
     private GymPackage gymPackage;
+
+    @OneToOne(mappedBy = "assignedGymSchedule", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private AssignedGymSchedule assignedGymSchedule;
 
     public Schedule() {}
 }
+

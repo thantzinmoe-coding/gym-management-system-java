@@ -2,7 +2,6 @@ package org._java_proj.gym_management_system.features.managePackage.service.impl
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
@@ -21,6 +20,7 @@ import org._java_proj.gym_management_system.model.GymPackage;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -84,22 +84,36 @@ public class GymPackageServiceImpl implements GymPackageService {
     }
 
 
+    @Override
     public ApiResponse updateGymPackage(Long id, GymPackageUpdateRequest request) {
-        final GymPackage gymPackage = gymPackageRepository.findById(id)
+        GymPackage gymPackage = gymPackageRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Gym package not found with this ID: "+ id));
 
-        gymPackage.setName(request.getName());
-        gymPackage.setDescription(request.getDescription());
-        gymPackage.setPrice(request.getPrice());
-        gymPackage.setDuration(request.getDuration());
+        Optional.ofNullable(request.getName()).ifPresent(gymPackage::setName);
+        Optional.ofNullable(request.getDescription()).ifPresent(gymPackage::setDescription);
+        Optional.of(request.getPrice()).ifPresent(gymPackage::setPrice);
+        Optional.ofNullable(request.getDuration()).ifPresent(gymPackage::setDuration);
+
+        System.out.println(gymPackage.getName());
+        System.out.println(gymPackage.getDescription());
+        System.out.println(gymPackage.getPrice());
+        System.out.println(gymPackage.getDuration());
+
+        System.out.println(request.getName());
+        System.out.println(request.getDescription());
+        System.out.println(request.getPrice());
+        System.out.println(request.getDuration());
 
         gymPackageRepository.save(gymPackage);
 
         GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
 
-        return ApiResponse.builder().code(1)
-                .success(HttpStatus.OK.value()).data(Map.of("Updated gym package: ", dto))
-                .message("Gym package updated successfully").build();
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of("Updated gym package",dto))
+                .message("Gym package updated successfully")
+                .build();
     }
 
 

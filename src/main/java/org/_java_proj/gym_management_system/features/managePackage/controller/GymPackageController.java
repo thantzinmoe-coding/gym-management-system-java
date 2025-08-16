@@ -168,7 +168,7 @@ public class GymPackageController {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Gym package not found")
             }
     )
-    public ResponseEntity<ApiResponse> updateGymPackage(@PathVariable("id") Long id, GymPackageUpdateRequest gymPackageUpdateRequest, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse> updateGymPackage(@PathVariable("id") Long id,@RequestBody GymPackageUpdateRequest gymPackageUpdateRequest, HttpServletRequest request) {
         ApiResponse response = this.gymPackageService.updateGymPackage(id, gymPackageUpdateRequest);
         return ResponseUtils.buildResponse(request, response);
     }
