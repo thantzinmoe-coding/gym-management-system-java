@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
-import org._java_proj.gym_management_system.common.constant.Condition;
+import org._java_proj.gym_management_system.common.constant.Condition; // Assuming this enum exists
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
 import java.time.LocalDate;
@@ -19,8 +19,9 @@ public class Equipment extends MasterData {
     @Column(nullable = false)
     private LocalDate purchase_date;
 
+    // *** Renamed 'condition' to 'equipmentCondition' ***
     @Column(nullable = false)
-    private Condition condition;
+    private Condition equipmentCondition; // Renamed field
 
     @Column(nullable = false)
     private LocalDate lastMaintenanceDate;
@@ -30,4 +31,11 @@ public class Equipment extends MasterData {
 
     public Equipment() {}
 
+    public Equipment(String name, LocalDate purchase_date, Condition equipmentCondition, LocalDate lastMaintenanceDate, LocalDate nextMaintenanceDate) { // Updated constructor parameter
+        this.name = name;
+        this.purchase_date = purchase_date;
+        this.equipmentCondition = equipmentCondition; // Updated setter call
+        this.lastMaintenanceDate = lastMaintenanceDate;
+        this.nextMaintenanceDate = nextMaintenanceDate;
+    }
 }
