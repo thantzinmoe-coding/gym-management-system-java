@@ -1,6 +1,5 @@
 package org._java_proj.gym_management_system.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +48,7 @@ public class User extends MasterData {
     private Chat receiver;
 
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private AssignedPackage trainer;
+    private AssignedGymSchedule trainer;
 
     public User() {}
 

@@ -60,13 +60,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-//                        .
-//                authorizeHttpRequests(auth -> auth
-//                        .requestMatchers(AUTH_WHITELIST).permitAll()
-//                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
-//                        .anyRequest().authenticated()
-//                )
+                .csrf(csrf -> csrf.disable()).
+                authorizeHttpRequests(auth -> auth
+                        .requestMatchers(AUTH_WHITELIST).permitAll()
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
