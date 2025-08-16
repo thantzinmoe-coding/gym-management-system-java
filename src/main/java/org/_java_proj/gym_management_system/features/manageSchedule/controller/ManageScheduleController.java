@@ -45,7 +45,7 @@ public class ManageScheduleController {
                                     name = "Example schedule",
                                     value = """
                                                {
-                                                  "day": "Monday",
+                                                  "days": "Monday",
                                                   "startTime": "3PM",
                                                   "endTime": "5PM",
                                                   "packageId": 1

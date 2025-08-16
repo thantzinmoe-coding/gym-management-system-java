@@ -44,7 +44,11 @@ public class ProfileController {
                     required = true,
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(type = "object"),
+                            schema = @Schema(type = "object",
+                                properties = {
+
+                                }
+                            ),
                             examples = @ExampleObject(
                                     name = "Example Profile",
                                     summary = "Example multipart request",
@@ -71,24 +75,25 @@ public class ProfileController {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
                                             name = "Success Response",
-                                            value = "{\n" +
-                                                    "  \"success\": 1,\n" +
-                                                    "  \"code\": 200,\n" +
-                                                    "  \"meta\": {\n" +
-                                                    "    \"endpoint\": \"/api/v1/auth/profile/3/update\",\n" +
-                                                    "    \"method\": \"POST\"\n" +
-                                                    "  },\n" +
-                                                    "  \"data\": {\n" +
-                                                    "    \"name\": \"Ko PU\",\n" +
-                                                    "    \"nrc\": \"12/ABC(N)123456\",\n" +
-                                                    "    \"phone\": \"09123456789\",\n" +
-                                                    "    \"dob\": \"1990-01-01\",\n" +
-                                                    "    \"gender\": \"MALE\",\n" +
-                                                    "    \"profilePic\": \"null\",\n" +
-                                                    "    \"address\": \"1990-01-01\"\n" +
-                                                    "  },\n" +
-                                                    "  \"message\": \"Profile created successfully\"\n" +
-                                                    "}"
+                                            value = """
+                                                    {
+                                                      "success": 1,
+                                                      "code": 200,
+                                                      "meta": {
+                                                        "endpoint": "/api/v1/auth/profile/3/update",
+                                                        "method": "POST"
+                                                      },
+                                                      "data": {
+                                                        "name": "Ko PU",
+                                                        "nrc": "12/ABC(N)123456",
+                                                        "phone": "09123456789",
+                                                        "dob": "1990-01-01",
+                                                        "gender": "MALE",
+                                                        "profilePic": "null",
+                                                        "address": "1990-01-01"
+                                                      },
+                                                      "message": "Profile created successfully"
+                                                    }"""
                                     )
                             )
                     ),
@@ -100,13 +105,14 @@ public class ProfileController {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
                                             name = "Error response example",
-                                            value = "{\n" +
-                                                    "  \"success\": 0,\n" +
-                                                    "  \"code\": 400,\n" +
-                                                    "  \"meta\": null,\n" +
-                                                    "  \"data\": null,\n" +
-                                                    "  \"message\": \"Failed to create profile\"\n" +
-                                                    "}"
+                                            value = """
+                                                    {
+                                                      "success": 0,
+                                                      "code": 400,
+                                                      "meta": null,
+                                                      "data": null,
+                                                      "message": "Failed to create profile"
+                                                    }"""
                                     )
                             )
                     )
@@ -205,14 +211,15 @@ public class ProfileController {
                             schema = @Schema(implementation = ProfileRequestDto.class),
                             examples = @ExampleObject(
                                     name = "Profile update example",
-                                    value = "{\n" +
-                                            "  \"name\": \"KoKyiKyaw\",\n" +
-                                            "  \"nrc\": \"12/ABC(N)123451\",\n" +
-                                            "  \"phone\": \"09123456786\",\n" +
-                                            "  \"dob\": \"2001-05-11\",\n" +
-                                            "  \"gender\": \"Female\",\n" +
-                                            "  \"address\": \"No. 123, Sakura Street, Mandalay\"\n" +
-                                            "}"
+                                    value = """
+                                            {
+                                              "name": "KoKyiKyaw",
+                                              "nrc": "12/ABC(N)123451",
+                                              "phone": "09123456786",
+                                              "dob": "2001-05-11",
+                                              "gender": "Female",
+                                              "address": "No. 123, Sakura Street, Mandalay"
+                                            }"""
                             )
                     )
             ),
@@ -224,24 +231,25 @@ public class ProfileController {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
                                             name = "Success Response",
-                                            value = "{\n" +
-                                                    "  \"success\": 1,\n" +
-                                                    "  \"code\": 200,\n" +
-                                                    "  \"meta\": {\n" +
-                                                    "    \"endpoint\": \"/api/v1/auth/profile/3/update\",\n" +
-                                                    "    \"method\": \"POST\"\n" +
-                                                    "  },\n" +
-                                                    "  \"data\": {\n" +
-                                                    "    \"name\": \"KoKyiKyaw\",\n" +
-                                                    "    \"nrc\": \"12/ABC(N)123451\",\n" +
-                                                    "    \"phone\": \"09123456786\",\n" +
-                                                    "    \"dob\": \"2001-05-11\",\n" +
-                                                    "    \"gender\": \"Female\",\n" +
-                                                    "    \"profilePic\": \"http://localhost:8080/files/https:/res.cloudinary.com/dsylx9zse/image/upload/v1/food_ordering_system/pngkv92rjk6mbbh5fhts\",\n" +
-                                                    "    \"address\": \"No. 123, Sakura Street, Mandalay\"\n" +
-                                                    "  },\n" +
-                                                    "  \"message\": \"Profile updated successfully\"\n" +
-                                                    "}"
+                                            value = """
+                                                    {
+                                                      "success": 1,
+                                                      "code": 200,
+                                                      "meta": {
+                                                        "endpoint": "/api/v1/auth/profile/3/update",
+                                                        "method": "POST"
+                                                      },
+                                                      "data": {
+                                                        "name": "KoKyiKyaw",
+                                                        "nrc": "12/ABC(N)123451",
+                                                        "phone": "09123456786",
+                                                        "dob": "2001-05-11",
+                                                        "gender": "Female",
+                                                        "profilePic": "http://localhost:8080/files/https:/res.cloudinary.com/dsylx9zse/image/upload/v1/food_ordering_system/pngkv92rjk6mbbh5fhts",
+                                                        "address": "No. 123, Sakura Street, Mandalay"
+                                                      },
+                                                      "message": "Profile updated successfully"
+                                                    }"""
                                     )
                             )
 
@@ -254,13 +262,14 @@ public class ProfileController {
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
                                             name = "Error response example",
-                                            value = "{\n" +
-                                                    "  \"success\": 0,\n" +
-                                                    "  \"code\": 400,\n" +
-                                                    "  \"meta\": null,\n" +
-                                                    "  \"data\": null,\n" +
-                                                    "  \"message\": \"Invalid input or error updating profile\"\n" +
-                                                    "}"
+                                            value = """
+                                                    {
+                                                      "success": 0,
+                                                      "code": 400,
+                                                      "meta": null,
+                                                      "data": null,
+                                                      "message": "Invalid input or error updating profile"
+                                                    }"""
                                     )
                             )
                     )

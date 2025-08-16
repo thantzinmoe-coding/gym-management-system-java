@@ -21,7 +21,7 @@ public class Schedule extends MasterData {
 
     // ✅ Many schedules belong to one package
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gym_package_id", nullable = false)
+    @JoinColumn(name = "gymPackage_id", nullable = false)
     private GymPackage gymPackage;
 
     @OneToOne(mappedBy = "assignedGymSchedule", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)

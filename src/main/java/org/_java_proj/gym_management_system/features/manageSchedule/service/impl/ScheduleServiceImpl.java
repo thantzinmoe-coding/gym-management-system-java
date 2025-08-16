@@ -34,11 +34,17 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     @Transactional
     public ApiResponse createSchedule(ScheduleCreateRequest request) {
-        final GymPackage gymPackage = this.gymPackageRepository.findById(request.getPackageId())
+        GymPackage gymPackage = this.gymPackageRepository.findById(request.getPackageId())
                 .orElseThrow(()-> new EntityNotFoundException("No gym package found with id "+request.getPackageId()));
 
+
+        System.out.println(request.getPackageId());
+        System.out.println(request.getDays());
+        System.out.println(request.getStartTime());
+        System.out.println(request.getEndTime());
+
         Schedule schedule = new Schedule();
-        schedule.setDay(request.getDay());
+        schedule.setDay(request.getDays());
         schedule.setStartTime(request.getStartTime());
         schedule.setEndTime(request.getEndTime());
         // TODO: set trainer & package entities by ID
@@ -94,7 +100,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id " + id));
 
-        schedule.setDay(request.getDay());
+        schedule.setDay(request.getDays());
         schedule.setStartTime(request.getStartTime());
         schedule.setEndTime(request.getEndTime());
         // TODO: update trainer & package as well
