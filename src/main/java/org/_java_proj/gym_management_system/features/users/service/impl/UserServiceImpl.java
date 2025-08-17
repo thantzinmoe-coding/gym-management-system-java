@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
+        return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("currentUser", dto))
                 .message("User account created Successfully.").build();
     }
@@ -141,8 +142,12 @@ public class UserServiceImpl implements UserService {
         User userData = userRepository.findByEmail(requestDto.getEmail());
         Profile profile = profileRepository.findByUser_Id(userData.getId()).orElseThrow(() ->
                 new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
-        BMI bmi = bmiRepository.findFirstByEntityId(userData.getId()).orElseThrow(() ->
-                new EntityNotFoundException("BMI not found for user ID: " + userData.getId()));;
+        BMI bmi = new BMI();
+        if(!Objects.equals(userData.getRole().getName(), "TRAINER")) {
+            bmi = bmiRepository.findFirstByEntityId(userData.getId()).orElseThrow(() ->
+                    new EntityNotFoundException("BMI not found for user ID: " + userData.getId()));
+        }
+
         long roleId = userData.getRole().getId();
         String roleName = userData.getRole().getName();
         UserToken tokenData = userTokenRepository.findTopByUsernameOrderByCreatedAtDesc(requestDto.getEmail());

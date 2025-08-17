@@ -42,7 +42,7 @@ public class GymPackageServiceImpl implements GymPackageService {
 
         GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
 
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
+        return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("Package: ", dto))
                 .message("Package created Successfully.").build();
     }

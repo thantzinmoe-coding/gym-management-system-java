@@ -42,7 +42,7 @@ public class BMIServiceImpl implements BMIService {
         bmiRepository.save(bmi);
 
 
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
+        return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(bmi)
                 .message("BMI created successfully").build();
     }

@@ -1,9 +1,6 @@
 package org._java_proj.gym_management_system.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
@@ -14,15 +11,14 @@ import org._java_proj.gym_management_system.common.entity.MasterData;
 public class AssignedGymSchedule extends MasterData {
 
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "trainer_id", nullable = false, unique = true)
+    // In AssignedGymSchedule entity
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "trainer_id", nullable = false)
     private User trainer;
 
-
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "schedule_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "schedule_id", nullable = false)
     private Schedule assignedGymSchedule;
-
 
     public AssignedGymSchedule(){}
 
