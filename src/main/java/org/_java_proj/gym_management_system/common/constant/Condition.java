@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 public enum Condition implements BaseEnum<Integer>{
     GOOD(1),
-    NEED_TO_PREPARE(2),
-    BROKEN(3);
+    FAIR(2),
+    POOR(3);
 
     private final int value;
 
@@ -16,4 +16,5 @@ public enum Condition implements BaseEnum<Integer>{
     public Integer getValue() {
         return this.value;
     }
+
 }
