@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -24,8 +26,8 @@ public class Schedule extends MasterData {
     @JoinColumn(name = "gymPackage_id", nullable = false)
     private GymPackage gymPackage;
 
-    @OneToOne(mappedBy = "assignedGymSchedule", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private AssignedGymSchedule assignedGymSchedule;
+    @OneToMany(mappedBy = "assignedGymSchedule", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<AssignedGymSchedule> assignedGymSchedule;
 
     public Schedule() {}
 }

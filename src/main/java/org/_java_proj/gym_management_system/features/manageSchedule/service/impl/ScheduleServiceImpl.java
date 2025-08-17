@@ -54,7 +54,7 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         ScheduleResponseDto dto = modelMapper.map(schedule, ScheduleResponseDto.class);
         return ApiResponse.builder()
-                .success(1).code(HttpStatus.OK.value())
+                .success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("Schedule", dto))
                 .message("Schedule created successfully.")
                 .build();

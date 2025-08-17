@@ -6,6 +6,7 @@ import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -47,8 +48,8 @@ public class User extends MasterData {
     @OneToOne(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Chat receiver;
 
-    @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private AssignedGymSchedule trainer;
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<AssignedGymSchedule> trainer;
 
     public User() {}
 

@@ -66,7 +66,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         FeedbackResponseDto dto = modelMapper.map(feedback, FeedbackResponseDto.class);
         return ApiResponse.builder()
                 .success(1)
-                .code(HttpStatus.OK.value())
+                .code(HttpStatus.CREATED.value())
                 .data(Map.of("feedback", dto)) // Data key for the response payload
                 .message("Feedback submitted successfully.")
                 .build();
