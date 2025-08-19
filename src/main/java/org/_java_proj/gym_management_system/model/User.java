@@ -3,8 +3,11 @@ package org._java_proj.gym_management_system.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org._java_proj.gym_management_system.common.constant.MemberStatus;
+import org._java_proj.gym_management_system.common.converter.MemberStatusConverter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +52,7 @@ public class User extends MasterData {
     private Chat receiver;
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<AssignedGymSchedule> trainer;
+    private List<AssignedGymSchedule> trainer = new ArrayList<>();
 
     public User() {}
 

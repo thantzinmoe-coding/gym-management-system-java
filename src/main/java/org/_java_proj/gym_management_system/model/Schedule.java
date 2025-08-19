@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,7 +28,7 @@ public class Schedule extends MasterData {
     private GymPackage gymPackage;
 
     @OneToMany(mappedBy = "assignedGymSchedule", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private List<AssignedGymSchedule> assignedGymSchedule;
+    private List<AssignedGymSchedule> assignedGymSchedule = new ArrayList<>();
 
     public Schedule() {}
 }
