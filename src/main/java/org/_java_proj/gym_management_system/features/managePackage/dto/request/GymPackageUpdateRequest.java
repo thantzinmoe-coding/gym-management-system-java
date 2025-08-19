@@ -2,6 +2,9 @@ package org._java_proj.gym_management_system.features.managePackage.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org._java_proj.gym_management_system.model.Schedule;
+
+import java.util.List;
 
 @Data
 public class GymPackageUpdateRequest {
@@ -16,4 +19,6 @@ public class GymPackageUpdateRequest {
 
     @NotNull(message = "Duration is required")
     private String duration;
+
+    private List<Schedule> schedule;
 }

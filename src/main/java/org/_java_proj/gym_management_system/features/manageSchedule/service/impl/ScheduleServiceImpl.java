@@ -2,6 +2,7 @@ package org._java_proj.gym_management_system.features.manageSchedule.service.imp
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
@@ -34,14 +35,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     @Transactional
     public ApiResponse createSchedule(ScheduleCreateRequest request) {
-        GymPackage gymPackage = this.gymPackageRepository.findById(request.getPackageId())
+        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(request.getPackageId(), Status.INACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("No gym package found with id "+request.getPackageId()));
 
-
-        System.out.println(request.getPackageId());
-        System.out.println(request.getDays());
-        System.out.println(request.getStartTime());
-        System.out.println(request.getEndTime());
 
         Schedule schedule = new Schedule();
         schedule.setDay(request.getDays());
