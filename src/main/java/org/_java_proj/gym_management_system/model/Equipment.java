@@ -1,40 +1,44 @@
 package org._java_proj.gym_management_system.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
+// Using @Data for simplicity, which generates setters and getters
 import lombok.Getter;
 import lombok.Setter;
-import org._java_proj.gym_management_system.common.constant.Condition; // Assuming this enum exists
-import org._java_proj.gym_management_system.common.entity.MasterData;
+import org._java_proj.gym_management_system.common.constant.Condition;
+import org._java_proj.gym_management_system.common.converter.ConditionConverter;
+import org._java_proj.gym_management_system.common.entity.MasterData; // Assuming this is a valid base class
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
-public class Equipment extends MasterData {
-    @Column(unique = true)
+public class Equipment extends MasterData { // Inherits from MasterData
+
+    @Column(unique = true, nullable = false) // Assuming name is unique and required
     private String name;
 
     @Column(nullable = false)
-    private LocalDate purchase_date;
+    private LocalDate purchaseDate; // Corrected from purchase_date
 
-    // *** Renamed 'condition' to 'equipmentCondition' ***
     @Column(nullable = false)
+    @Convert(converter = ConditionConverter.class)
     private Condition equipmentCondition; // Renamed field
 
     @Column(nullable = false)
-    private LocalDate lastMaintenanceDate;
+    private LocalDate lastMaintenanceDate; // Corrected from lastMaintenanceDate
 
     @Column(nullable = false)
-    private LocalDate nextMaintenanceDate;
+    private LocalDate nextMaintenanceDate; // Corrected from nextMaintenanceDate
 
-    public Equipment() {}
+    // Constructor matching the fields (adjust if you have a default constructor requirement or different fields)
+    public Equipment() {} // Default constructor
 
-    public Equipment(String name, LocalDate purchase_date, Condition equipmentCondition, LocalDate lastMaintenanceDate, LocalDate nextMaintenanceDate) { // Updated constructor parameter
+    // If you want to add a constructor that initializes these fields:
+    public Equipment(String name, LocalDate purchaseDate, Condition equipmentCondition, LocalDate lastMaintenanceDate, LocalDate nextMaintenanceDate) {
         this.name = name;
-        this.purchase_date = purchase_date;
-        this.equipmentCondition = equipmentCondition; // Updated setter call
+        this.purchaseDate = purchaseDate;
+        this.equipmentCondition = equipmentCondition;
         this.lastMaintenanceDate = lastMaintenanceDate;
         this.nextMaintenanceDate = nextMaintenanceDate;
     }

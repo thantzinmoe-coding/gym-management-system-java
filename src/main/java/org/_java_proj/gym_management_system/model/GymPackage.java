@@ -5,10 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
-public class Package extends MasterData {
+public class GymPackage extends MasterData {
 
     @Column(nullable = false)
     private String name;
@@ -22,11 +25,11 @@ public class Package extends MasterData {
     @Column(nullable = false)
     private String duration;
 
-    @OneToOne(mappedBy = "aPackage", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private Schedule schedule;
+    @OneToMany(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Schedule> schedules = new ArrayList<>();
 
-    @OneToOne(mappedBy = "aPackage", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToOne(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private Booking booking;
 
-    public Package() {}
+    public GymPackage() {}
 }

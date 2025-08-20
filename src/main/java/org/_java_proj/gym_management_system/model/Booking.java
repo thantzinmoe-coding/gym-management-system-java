@@ -19,8 +19,8 @@ public class Booking extends MasterData {
     private User member;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "package_id", nullable = false, unique = true)
-    private Package aPackage;
+    @JoinColumn(name = "gymPackage_id", nullable = false, unique = true)
+    private GymPackage gymPackage;
 
     public Booking() {}
 }
