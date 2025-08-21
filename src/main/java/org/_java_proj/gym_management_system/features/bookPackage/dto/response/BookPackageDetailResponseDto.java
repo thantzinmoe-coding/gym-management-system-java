@@ -6,19 +6,12 @@ import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import java.time.LocalDateTime;
 
 @Data
-public class BookPackageResponseDto {
-
-    private Long bookingPackageID;
+public class BookPackageDetailResponseDto {
+    private Long bookPackageId;
 
     private LocalDateTime bookingDate;
 
-    private LocalDateTime cancelDate;
-
-    private Long memberID;
-
-    private String memberName;
-
-    private String memberEmail;
+    private MemberStatus memberStatus;
 
     private String gymPackageName;
 
@@ -33,7 +26,5 @@ public class BookPackageResponseDto {
     private String endTime;
 
     private String day;
-
-    private MemberStatus status;
 
 }

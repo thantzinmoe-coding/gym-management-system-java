@@ -44,11 +44,7 @@ public class ProfileController {
                     required = true,
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(type = "object",
-                                properties = {
-
-                                }
-                            ),
+                            schema = @Schema(name = "data", type = "object"),
                             examples = @ExampleObject(
                                     name = "Example Profile",
                                     summary = "Example multipart request",

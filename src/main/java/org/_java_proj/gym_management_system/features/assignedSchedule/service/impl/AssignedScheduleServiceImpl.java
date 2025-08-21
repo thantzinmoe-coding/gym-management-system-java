@@ -9,6 +9,7 @@ import org._java_proj.gym_management_system.features.assignedSchedule.dto.reques
 import org._java_proj.gym_management_system.features.assignedSchedule.dto.response.AssignedScheduleResponseDto;
 import org._java_proj.gym_management_system.features.assignedSchedule.repository.AssignedScheduleRepository;
 import org._java_proj.gym_management_system.features.assignedSchedule.service.AssignedScheduleService;
+import org._java_proj.gym_management_system.features.managePackage.repository.GymPackageRepository;
 import org._java_proj.gym_management_system.features.manageSchedule.repository.ScheduleRepository;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.model.AssignedGymSchedule;
@@ -27,6 +28,7 @@ public class AssignedScheduleServiceImpl implements AssignedScheduleService {
     private final AssignedScheduleRepository assignedScheduleRepository;
     private final UserRepository userRepository;
     private final ScheduleRepository scheduleRepository;
+    private final GymPackageRepository gymPackageRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -41,6 +43,10 @@ public class AssignedScheduleServiceImpl implements AssignedScheduleService {
         // Validate schedule exists
         Schedule schedule = this.scheduleRepository.findById(request.getScheduleID())
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id " + request.getScheduleID()));
+
+
+        this.gymPackageRepository.findByIdAndStatus(schedule.getGymPackage().getId(), Status.ACTIVE)
+                .orElseThrow(() -> new EntityCreationException("This package is not active to assign"));
 
         // Check if trainer already has an ACTIVE assignment
         if (assignedScheduleRepository.existsByTrainerIdAndStatus(request.getTrainerID(), Status.ACTIVE)) {

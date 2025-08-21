@@ -14,4 +14,5 @@ public interface GymPackageRepository extends JpaRepository<GymPackage, Long> {
     @Query("SELECT g FROM GymPackage g")
     Page<GymPackage> findAllGymPackages(Pageable pageable);
 
+    Optional<GymPackage> findByIdAndStatus(Long gymPackageId, Status status);
 }

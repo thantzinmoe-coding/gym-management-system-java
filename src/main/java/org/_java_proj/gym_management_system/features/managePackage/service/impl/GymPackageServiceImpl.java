@@ -2,6 +2,7 @@ package org._java_proj.gym_management_system.features.managePackage.service.impl
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org._java_proj.gym_management_system.model.GymPackage;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +51,7 @@ public class GymPackageServiceImpl implements GymPackageService {
 
     @Override
     public ApiResponse getGymPackageById(Long gymPackageId) {
-        GymPackage gymPackage = this.gymPackageRepository.findById(gymPackageId)
+        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(gymPackageId, Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("Gym package not with this id: "+gymPackageId));
 
         GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
@@ -94,16 +96,6 @@ public class GymPackageServiceImpl implements GymPackageService {
         Optional.of(request.getPrice()).ifPresent(gymPackage::setPrice);
         Optional.ofNullable(request.getDuration()).ifPresent(gymPackage::setDuration);
 
-        System.out.println(gymPackage.getName());
-        System.out.println(gymPackage.getDescription());
-        System.out.println(gymPackage.getPrice());
-        System.out.println(gymPackage.getDuration());
-
-        System.out.println(request.getName());
-        System.out.println(request.getDescription());
-        System.out.println(request.getPrice());
-        System.out.println(request.getDuration());
-
         gymPackageRepository.save(gymPackage);
 
         GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
@@ -122,7 +114,8 @@ public class GymPackageServiceImpl implements GymPackageService {
         GymPackage gymPackage = gymPackageRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Gym package not found with this ID: "+ id));
 
-        this.gymPackageRepository.delete(gymPackage);
+        gymPackage.delete();
+        this.gymPackageRepository.save(gymPackage);
 
         return ApiResponse.builder().success(1)
                 .code(HttpStatus.OK.value())

@@ -28,8 +28,8 @@ public class GymPackage extends MasterData {
     @OneToMany(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Schedule> schedules = new ArrayList<>();
 
-    @OneToOne(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private Booking booking;
+    @OneToMany(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<Booking> booking = new ArrayList<>();
 
     public GymPackage() {}
 }
