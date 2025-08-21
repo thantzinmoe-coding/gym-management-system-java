@@ -15,5 +15,4 @@ public class GymPackageResponseDto {
 
     private String duration;
 
-    private List<Schedule> schedule;
 }

@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org._java_proj.gym_management_system.model.GymPackage;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +39,6 @@ public class GymPackageServiceImpl implements GymPackageService {
         gymPackage.setDescription(request.getDescription());
         gymPackage.setPrice(request.getPrice());
         gymPackage.setDuration(request.getDuration());
-        gymPackage.setSchedules(request.getSchedule());
 
         gymPackageRepository.save(gymPackage);
 
@@ -95,7 +95,6 @@ public class GymPackageServiceImpl implements GymPackageService {
         Optional.ofNullable(request.getDescription()).ifPresent(gymPackage::setDescription);
         Optional.of(request.getPrice()).ifPresent(gymPackage::setPrice);
         Optional.ofNullable(request.getDuration()).ifPresent(gymPackage::setDuration);
-        Optional.ofNullable(request.getSchedule()).ifPresent(gymPackage::setSchedules);
 
         gymPackageRepository.save(gymPackage);
 

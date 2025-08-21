@@ -20,5 +20,4 @@ public class GymPackageCreateRequest {
     @NotNull(message = "Duration is required")
     private String duration;
 
-    private List<Schedule> schedule;
 }
