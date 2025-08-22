@@ -10,9 +10,9 @@ public class BookPackageResponseDto {
 
     private Long bookingPackageID;
 
-    private LocalDateTime bookingDate;
+    private String bookingDate;
 
-    private LocalDateTime cancelDate;
+    private String cancelDate;
 
     private Long memberID;
 

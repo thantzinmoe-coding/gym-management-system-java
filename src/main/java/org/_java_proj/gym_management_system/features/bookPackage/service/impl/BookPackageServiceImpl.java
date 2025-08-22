@@ -70,7 +70,7 @@ public class BookPackageServiceImpl implements BookPackageService {
         // Build response
         BookPackageResponseDto dto = new BookPackageResponseDto();
         dto.setBookingPackageID(booking.getId());
-        dto.setBookingDate(booking.getCreatedAt());
+        dto.setBookingDate(booking.getCreatedAt().toString());
         dto.setMemberID(booking.getEntityId());
         dto.setMemberName(member.getProfile().getName());
         dto.setMemberEmail(member.getEmail());
@@ -109,7 +109,7 @@ public class BookPackageServiceImpl implements BookPackageService {
         bookPackageRepository.save(booking);
 
         BookPackageResponseDto dto = new BookPackageResponseDto();
-        dto.setCancelDate(booking.getDeletedAt());
+        dto.setCancelDate(booking.getDeletedAt().toString());
 
         return ApiResponse.builder()
                 .success(1)
@@ -157,7 +157,7 @@ public class BookPackageServiceImpl implements BookPackageService {
 
         BookPackageResponseDto dto = new BookPackageResponseDto();
         dto.setBookingPackageID(booking.getId());
-        dto.setBookingDate(booking.getCreatedAt());
+        dto.setBookingDate(booking.getCreatedAt().toString());
         dto.setMemberID(booking.getEntityId());
         dto.setMemberName(member.getProfile().getName());
         dto.setMemberEmail(member.getEmail());
@@ -204,7 +204,7 @@ public class BookPackageServiceImpl implements BookPackageService {
 
         BookPackageDetailResponseDto dto = new BookPackageDetailResponseDto();
         dto.setBookPackageId(booking.getId());
-        dto.setBookingDate(booking.getCreatedAt());
+        dto.setBookingDate(booking.getCreatedAt().toString());
         dto.setMemberStatus(booking.getMemberStatus());
         dto.setGymPackageName(gymPackage.getName());
         dto.setGymPackageDescription(gymPackage.getDescription());

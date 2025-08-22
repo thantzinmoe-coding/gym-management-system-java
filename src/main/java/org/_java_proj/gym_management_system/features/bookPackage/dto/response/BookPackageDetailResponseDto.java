@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public class BookPackageDetailResponseDto {
     private Long bookPackageId;
 
-    private LocalDateTime bookingDate;
+    private String bookingDate;
 
     private MemberStatus memberStatus;
 

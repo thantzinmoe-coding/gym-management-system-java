@@ -69,4 +69,5 @@ public class User extends MasterData {
         this.receivedFeedback.remove(feedback);
         feedback.setTrainer(null);
     }
+
 }
