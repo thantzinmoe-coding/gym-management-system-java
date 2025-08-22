@@ -2,6 +2,7 @@ package org._java_proj.gym_management_system.features.bookPackage.repository;
 
 import jakarta.validation.constraints.NotBlank;
 import org._java_proj.gym_management_system.common.constant.MemberStatus;
+import org._java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse;
 import org._java_proj.gym_management_system.model.Booking;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,4 +49,35 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findByEntityId(Long memberId, Pageable pageable);
 
     Page<Booking> findByGymPackageId(Long packageId, Pageable pageable);
+
+    Optional<Object> findByIdAndMemberStatus(Long bookingId, MemberStatus memberStatus);
+
+    // In BookingRepository
+    // In BookingRepository
+    @Query("SELECT new org._java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse(" +
+            "b.id, " +
+            "b.entityId, " +
+            "p.name, " +
+            "b.gymPackage.id, " +
+            "g.name, " +
+            "b.memberStatus) " +
+            "FROM Booking b " +
+            "LEFT JOIN User u ON u.id = b.entityId " +
+            "LEFT JOIN Profile p ON p.user.id = u.id " +
+            "LEFT JOIN GymPackage g ON g.id = b.gymPackage.id " +
+            "WHERE (:status IS NULL OR b.memberStatus = :status ) " +
+            "AND (:keyword IS NULL OR :keyword = '' OR " +
+            "     LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "     LOWER(g.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:memberId IS NULL OR b.entityId = :memberId) " +
+            "AND (:packageId IS NULL OR b.gymPackage.id = :packageId)")
+    Page<BookingDetailResponse> findPendingBookingsWithDetails(
+            @Param("status") MemberStatus status,
+            @Param("keyword") String keyword,
+            @Param("memberId") Long memberId,
+            @Param("packageId") Long packageId,
+            Pageable pageable
+    );
+
+
 }
