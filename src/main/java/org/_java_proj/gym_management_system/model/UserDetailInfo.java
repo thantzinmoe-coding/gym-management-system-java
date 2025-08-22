@@ -8,25 +8,26 @@ import org._java_proj.gym_management_system.common.entity.MasterData;
 @Entity
 @Getter
 @Setter
-public class BMI extends MasterData {
-    @Column(nullable = false)
+public class UserDetailInfo extends MasterData {
+
     private double weight;
 
-    @Column(nullable = false)
     private double height;
 
-    @Column(nullable = false)
     private String healthInfo;
 
-    @Column(nullable = false)
     private String goal;
+
+    private Integer experience;
+
+    private String specialization;
 
     @Column(name = "entity_id")
     private Long entityId;
 
-    public BMI() {}
+    public UserDetailInfo() {}
 
-    public BMI(double weight, double height, String healthInfo, String goal, Long entityId) {
+    public UserDetailInfo(double weight, double height, String healthInfo, String goal, Long entityId) {
         this.weight = weight;
         this.height = height;
         this.healthInfo = healthInfo;

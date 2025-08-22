@@ -3,12 +3,14 @@ package org._java_proj.gym_management_system.features.users.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.common.storage.StorageService;
 import org._java_proj.gym_management_system.common.storage.StorageServiceFactory;
 import org._java_proj.gym_management_system.common.util.ServerUtil;
+import org._java_proj.gym_management_system.config.exceptions.UnauthorizedException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
-import org._java_proj.gym_management_system.features.bmi.dto.response.BMIDetailResponseDto;
-import org._java_proj.gym_management_system.features.bmi.repository.BMIRepository;
+import org._java_proj.gym_management_system.features.userDetailInfo.dto.response.UserDetailInfoResponseDto;
+import org._java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository;
 import org._java_proj.gym_management_system.features.profile.dto.response.ProfileResponseDto;
 import org._java_proj.gym_management_system.features.users.dto.request.AuthRequestDto;
 import org._java_proj.gym_management_system.features.users.dto.request.UserCreateRequest;
@@ -23,7 +25,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -40,16 +42,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final RoleRepository roleRepository;
-    private final BMIRepository bmiRepository;
+    private final UserDetailInfoRepository userDetailInfoRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
     private final ServerUtil serverUtil;
     private final UserTokenRepository userTokenRepository;
     private final StringRedisTemplate redisTemplate;
-
-
-    private final AuthenticationManager authenticationManager;
 
     private StorageService storageService;
 
@@ -68,11 +67,14 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
+        if(Objects.equals(role.getName(), "TRAINER")) {
+            user.setStatus(Status.INACTIVE);
+        }
 
         userRepository.save(user);
 
         UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
+        return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("currentUser", dto))
                 .message("User account created Successfully.").build();
     }
@@ -139,10 +141,28 @@ public class UserServiceImpl implements UserService {
     public ApiResponse getUserAuthData(AuthRequestDto requestDto, String token, String refreshToken) {
         boolean saveRefreshToken = true;
         User userData = userRepository.findByEmail(requestDto.getEmail());
-        Profile profile = profileRepository.findByUser_Id(userData.getId()).orElseThrow(() ->
-                new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
-        BMI bmi = bmiRepository.findFirstByEntityId(userData.getId()).orElseThrow(() ->
-                new EntityNotFoundException("BMI not found for user ID: " + userData.getId()));;
+
+        if(userData == null) {
+            throw new org._java_proj.gym_management_system
+                    .config.exceptions
+                    .EntityNotFoundException("User not found with email "+ requestDto.getEmail());
+        }
+
+        if(Objects.equals(userData.getRole().getName(), "TRAINER") && Objects.equals(userData.getStatus().toString(), "INACTIVE")) {
+            throw new UnauthorizedException("You can't login. Please wait for system Admin Approval.");
+        }
+
+        Profile profile = new Profile();
+        UserDetailInfo userDetailInfo =  new UserDetailInfo();
+        if(!Objects.equals(userData.getRole().getName(), "ADMIN")) {
+            profile = profileRepository.findByUser_Id(userData.getId()).orElseThrow(() ->
+                    new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
+            userDetailInfo = (UserDetailInfo) this.userDetailInfoRepository.findFirstByEntityIdAndStatus(userData.getId(), Status.ACTIVE)
+                    .orElseThrow(() ->
+                            new EntityNotFoundException("User detail info not found for user ID: " + userData.getId()));
+
+        }
+
         long roleId = userData.getRole().getId();
         String roleName = userData.getRole().getName();
         UserToken tokenData = userTokenRepository.findTopByUsernameOrderByCreatedAtDesc(requestDto.getEmail());
@@ -162,7 +182,7 @@ public class UserServiceImpl implements UserService {
             userTokenRepository.save(userToken);
         }
         ProfileResponseDto profileResponse = modelMapper.map(profile, ProfileResponseDto.class);
-        BMIDetailResponseDto bmiDetailResponseDto = modelMapper.map(bmi, BMIDetailResponseDto.class);
+        UserDetailInfoResponseDto userDetailInfoResponseDto = modelMapper.map(userDetailInfo, UserDetailInfoResponseDto.class);
 
         Map<String, Object> data = Map.of(
                 "token", token,
@@ -172,7 +192,7 @@ public class UserServiceImpl implements UserService {
                 "email", userData.getEmail(),
                 "roleName", roleName,
                 "profile",profileResponse,
-                "bmi",bmiDetailResponseDto
+                "userDetailInfo", userDetailInfoResponseDto
         );
         return ApiResponse.builder()
                 .success(1)

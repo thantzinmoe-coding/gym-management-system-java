@@ -3,10 +3,11 @@ package org._java_proj.gym_management_system.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -26,9 +27,6 @@ public class User extends MasterData {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Profile profile;
 
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Booking booking;
-
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Salary salary;
 
@@ -47,19 +45,19 @@ public class User extends MasterData {
     @OneToOne(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Chat receiver;
 
-    @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private AssignedGymSchedule trainer;
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<AssignedGymSchedule> assignedSchedules = new ArrayList<>();
 
     public User() {}
 
     public void giveRating(final Feedback feedback) {
         this.givenFeedback.add(feedback);
-        feedback.setTrainer(this);
+        feedback.setMember(this);
     }
 
     public void removeGivenRating(final Feedback feedback) {
         this.givenFeedback.remove(feedback);
-        feedback.setTrainer(null);
+        feedback.setMember(null);
     }
 
     public void receiveRating(final Feedback feedback) {
@@ -71,4 +69,5 @@ public class User extends MasterData {
         this.receivedFeedback.remove(feedback);
         feedback.setTrainer(null);
     }
+
 }

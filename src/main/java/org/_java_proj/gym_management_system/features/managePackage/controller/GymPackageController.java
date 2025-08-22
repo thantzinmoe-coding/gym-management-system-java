@@ -70,10 +70,10 @@ public class GymPackageController {
                                                         "method": "POST"
                                                       },
                                                       "data": {
-                                                        "name": "Premium package",
-                                                        "description": "premium package for gym management system",
-                                                        "price": 70000,
-                                                        "duration": "1 month",
+                                                          "name": "Premium package",
+                                                          "description": "premium package for gym management system",
+                                                          "price": 70000,
+                                                          "duration": "1 month",
                                                       },
                                                       "message": "Package created successfully"
                                                     }"""
