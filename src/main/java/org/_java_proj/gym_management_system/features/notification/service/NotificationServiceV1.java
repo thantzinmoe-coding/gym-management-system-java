@@ -4,7 +4,7 @@ import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.features.notification.dto.request.NotificationCreateRequest;
 import org._java_proj.gym_management_system.features.notification.dto.request.NotificationUpdateRequest;
 
-public interface NotificationService {
+public interface NotificationServiceV1 {
     ApiResponse createNotification(NotificationCreateRequest request);
     ApiResponse getNotification(Long id);
     ApiResponse listNotifications();

@@ -7,8 +7,8 @@ import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.features.notification.dto.request.NotificationCreateRequest;
 import org._java_proj.gym_management_system.features.notification.dto.request.NotificationUpdateRequest;
 import org._java_proj.gym_management_system.features.notification.dto.response.NotificationResponseDto;
-import org._java_proj.gym_management_system.features.notification.repository.NotificationRepository;
-import org._java_proj.gym_management_system.features.notification.service.NotificationService;
+import org._java_proj.gym_management_system.features.notification.repository.NotificationRepositoryV1;
+import org._java_proj.gym_management_system.features.notification.service.NotificationServiceV1;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.model.Notification;
 import org._java_proj.gym_management_system.model.User;
@@ -20,9 +20,9 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationServiceImpl implements NotificationService {
+public class NotificationServiceV1Impl implements NotificationServiceV1 {
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationRepositoryV1 notificationRepositoryV1;
     private final UserRepository userRepository;
 
     @Override
@@ -39,7 +39,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         notification.setRecipient(recipient);
 
-        notificationRepository.save(notification);
+        notificationRepositoryV1.save(notification);
 
         NotificationResponseDto dto = mapToDto(notification);
         return ApiResponse.builder()
@@ -52,7 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public ApiResponse getNotification(Long id) {
-        Notification notification = notificationRepository.findById(id)
+        Notification notification = notificationRepositoryV1.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
         NotificationResponseDto dto = mapToDto(notification);
 
@@ -66,7 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
     public ApiResponse getNotificationsForUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        List<NotificationResponseDto> dtos = notificationRepository.findByRecipient(user)
+        List<NotificationResponseDto> dtos = notificationRepositoryV1.findByRecipient(user)
                 .stream().map(this::mapToDto).toList();
 
         return ApiResponse.builder()
@@ -79,7 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public ApiResponse listNotifications() {
-        List<NotificationResponseDto> dtos = notificationRepository.findAll()
+        List<NotificationResponseDto> dtos = notificationRepositoryV1.findAll()
                 .stream().map(this::mapToDto).toList();
 
         return ApiResponse.builder()
@@ -93,12 +93,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public ApiResponse updateNotification(Long id, NotificationUpdateRequest request) {
-        Notification notification = notificationRepository.findById(id)
+        Notification notification = notificationRepositoryV1.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
         if (request.getTitle() != null) notification.setTitle(request.getTitle());
         if (request.getContent() != null) notification.setContent(request.getContent());
         if (request.getTime() != null) notification.setTime(request.getTime());
-        notificationRepository.save(notification);
+        notificationRepositoryV1.save(notification);
 
         NotificationResponseDto dto = mapToDto(notification);
 
@@ -113,9 +113,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public ApiResponse deleteNotification(Long id) {
-        Notification notification = notificationRepository.findById(id)
+        Notification notification = notificationRepositoryV1.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
-        notificationRepository.delete(notification);
+        notificationRepositoryV1.delete(notification);
 
         return ApiResponse.builder()
                 .success(1)
