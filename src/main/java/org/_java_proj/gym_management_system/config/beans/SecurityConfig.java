@@ -75,6 +75,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/schedule/**").permitAll()
                         .requestMatchers("/api/v1/equipment/**").permitAll()
                         .requestMatchers("/api/notifications/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // Allow public access to the WebSocket endpoint
+                        .requestMatchers("/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

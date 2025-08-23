@@ -10,7 +10,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByRecipientIsNullOrderByTimeDesc(); // For broadcast notifications
     List<Notification> findByRecipientIdOrderByTimeDesc(Long recipientId); // For specific user
-    // Or a single method to fetch both
-    // @Query("SELECT n FROM Notification n WHERE n.recipient.id = :userId OR n.recipient IS NULL ORDER BY n.time DESC")
-    // List<Notification> findForUser(Long userId);
+
 }
