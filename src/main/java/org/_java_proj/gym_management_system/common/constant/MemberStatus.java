@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 public enum MemberStatus implements BaseEnum<Integer> {
     PENDING(1),
-    ACCEPTED(2),
-    FINISHED(3),
-    CANCELLED(4);
+    ACTIVE(2),
+    CANCELLED(3),
+    COMPLETED(4);
 
     private final int value;
 
