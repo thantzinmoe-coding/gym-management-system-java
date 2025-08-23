@@ -1,5 +1,7 @@
 package org._java_proj.gym_management_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +27,7 @@ public class User extends MasterData {
     private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
     private Profile profile;
 
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
@@ -47,6 +50,10 @@ public class User extends MasterData {
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<AssignedGymSchedule> assignedSchedules = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sender")
+    @JsonManagedReference // The forward part of the reference
+    private List<Notification> sentNotifications;
 
     public User() {}
 
