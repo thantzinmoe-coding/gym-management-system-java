@@ -1,4 +1,4 @@
-package org._java_proj.gym_management_system.features.notificationManager.dto;
+package org._java_proj.gym_management_system.features.notification.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

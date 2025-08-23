@@ -10,7 +10,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "attendance")
 @Getter
 @Setter
 public class Attendance extends MasterData {
