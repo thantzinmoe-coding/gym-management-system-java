@@ -1,8 +1,8 @@
-package org._java_proj.gym_management_system.features.notificationManager.service;
+package org._java_proj.gym_management_system.features.notification.service;
 
 
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
-import org._java_proj.gym_management_system.features.notificationManager.dto.NotificationDTO;
+import org._java_proj.gym_management_system.features.notification.dto.NotificationDTO;
 import org._java_proj.gym_management_system.model.Notification;
 
 import java.util.List;

@@ -1,11 +1,11 @@
-package org._java_proj.gym_management_system.features.notificationManager.service.impl;
+package org._java_proj.gym_management_system.features.notification.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
-import org._java_proj.gym_management_system.features.notificationManager.dto.NotificationDTO;
-import org._java_proj.gym_management_system.features.notificationManager.repository.NotificationRepository;
-import org._java_proj.gym_management_system.features.notificationManager.repository.UserNotificationStatusRepository;
-import org._java_proj.gym_management_system.features.notificationManager.service.NotificationService;
+import org._java_proj.gym_management_system.features.notification.dto.NotificationDTO;
+import org._java_proj.gym_management_system.features.notification.repository.NotificationRepository;
+import org._java_proj.gym_management_system.features.notification.repository.UserNotificationStatusRepository;
+import org._java_proj.gym_management_system.features.notification.service.NotificationService;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.model.Notification;
 import org._java_proj.gym_management_system.model.User;

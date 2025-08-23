@@ -1,13 +1,13 @@
-package org._java_proj.gym_management_system.features.notificationManager.controller;
+package org._java_proj.gym_management_system.features.notification.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
-import org._java_proj.gym_management_system.features.notificationManager.dto.NotificationDTO;
-import org._java_proj.gym_management_system.features.notificationManager.dto.UserNotificationDTO;
-import org._java_proj.gym_management_system.features.notificationManager.service.NotificationQueryService;
-import org._java_proj.gym_management_system.features.notificationManager.service.NotificationService;
+import org._java_proj.gym_management_system.features.notification.dto.NotificationDTO;
+import org._java_proj.gym_management_system.features.notification.dto.UserNotificationDTO;
+import org._java_proj.gym_management_system.features.notification.service.NotificationQueryService;
+import org._java_proj.gym_management_system.features.notification.service.NotificationService;
 import org._java_proj.gym_management_system.model.Notification;
 import org._java_proj.gym_management_system.model.UserDetail;
 import org.springframework.http.ResponseEntity;

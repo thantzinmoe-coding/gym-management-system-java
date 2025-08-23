@@ -38,4 +38,5 @@ public class Profile extends MasterData {
     private User user;
 
     public Profile() {}
+
 }

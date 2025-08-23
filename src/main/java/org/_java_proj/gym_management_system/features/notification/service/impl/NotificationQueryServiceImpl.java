@@ -1,9 +1,9 @@
-package org._java_proj.gym_management_system.features.notificationManager.service.impl;
+package org._java_proj.gym_management_system.features.notification.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org._java_proj.gym_management_system.features.notificationManager.dto.UserNotificationDTO;
-import org._java_proj.gym_management_system.features.notificationManager.repository.UserNotificationStatusRepository;
-import org._java_proj.gym_management_system.features.notificationManager.service.NotificationQueryService;
+import org._java_proj.gym_management_system.features.notification.dto.UserNotificationDTO;
+import org._java_proj.gym_management_system.features.notification.repository.UserNotificationStatusRepository;
+import org._java_proj.gym_management_system.features.notification.service.NotificationQueryService;
 import org._java_proj.gym_management_system.model.UserNotificationStatus;
 import org.springframework.stereotype.Service;
 

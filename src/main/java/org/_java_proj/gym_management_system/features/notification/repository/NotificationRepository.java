@@ -1,4 +1,4 @@
-package org._java_proj.gym_management_system.features.notificationManager.repository;
+package org._java_proj.gym_management_system.features.notification.repository;
 
 import org._java_proj.gym_management_system.model.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
