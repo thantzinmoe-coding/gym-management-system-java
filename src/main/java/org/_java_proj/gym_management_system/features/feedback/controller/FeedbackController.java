@@ -64,6 +64,16 @@ public class FeedbackController {
         final ApiResponse response = feedbackService.deleteFeedback(id);
         return ResponseUtils.buildResponse(request, response);
     }
+
+    @GetMapping("/trainer/{trainerId}/average-rating")  // New endpoint
+    @Operation(summary = "Get Average Rating for Trainer", description = "Fetch the average rating for a specific trainer")
+    public ResponseEntity<ApiResponse> getAverageRatingForTrainer(
+            @PathVariable Long trainerId,
+            HttpServletRequest request
+    ) {
+        final ApiResponse response = feedbackService.getAverageRatingByTrainer(trainerId);
+        return ResponseUtils.buildResponse(request, response);
+    }
 }
 
 

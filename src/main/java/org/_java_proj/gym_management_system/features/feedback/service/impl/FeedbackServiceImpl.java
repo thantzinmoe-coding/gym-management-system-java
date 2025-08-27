@@ -140,4 +140,17 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .message("Feedback deleted successfully.")
                 .build();
     }
+    @Override
+    public ApiResponse getAverageRatingByTrainer(Long trainerId) {
+        Double averageRating = feedbackRepository.findAverageRatingByTrainerId(trainerId);
+        if (averageRating == null) {
+            averageRating = 0.0; // Or handle the case where there's no rating
+        }
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of("averageRating", averageRating))
+                .message("Average rating fetched for trainer.")
+                .build();
+    }
 }
