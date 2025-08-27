@@ -92,7 +92,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public PaginatedApiResponse<FeedbackResponseDto> listFeedbacks(Pageable pageable) {
-        Page<Feedback> page = feedbackRepository.getAllFeedbacks(pageable);
+        Page<Feedback> page = feedbackRepository.findAll(pageable);
 
         List<FeedbackResponseDto> data = page.getContent().stream()
                 .map(feedback -> modelMapper.map(feedback, FeedbackResponseDto.class))

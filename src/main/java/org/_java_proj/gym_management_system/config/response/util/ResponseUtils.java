@@ -1,10 +1,10 @@
 package org._java_proj.gym_management_system.config.response.util;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
+import org._java_proj.gym_management_system.features.manageSchedule.dto.response.ScheduleResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -28,14 +28,16 @@ public class ResponseUtils {
 
     public static <T> ResponseEntity<PaginatedApiResponse<T>> buildPaginatedResponse(
             final HttpServletRequest request,
-            PaginatedApiResponse<T> paginatedResponse) {
+            PaginatedApiResponse<T> paginatedResponse) { // Corrected line
 
         final HttpStatus status = HttpStatus.valueOf(paginatedResponse.getCode());
-        if (paginatedResponse.getMeta().getMethod() == null && paginatedResponse.getMeta().getEndpoint() == null) {
-            final String method = request.getMethod();
-            final String endpoint = request.getRequestURI();
-            paginatedResponse.getMeta().setMethod(method);
-            paginatedResponse.getMeta().setEndpoint(endpoint);
+        if (paginatedResponse.getMeta() != null) {  // Add null check
+            if (paginatedResponse.getMeta().getMethod() == null && paginatedResponse.getMeta().getEndpoint() == null) {
+                final String method = request.getMethod();
+                final String endpoint = request.getRequestURI();
+                paginatedResponse.getMeta().setMethod(method);
+                paginatedResponse.getMeta().setEndpoint(endpoint);
+            }
         }
         return new ResponseEntity<>(paginatedResponse, status);
     }
