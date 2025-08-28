@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org._java_proj.gym_management_system.common.constant.GymPackageType;
 
+import java.time.LocalDate;
+
 @Data
 public class GymPackageCreateRequest {
     @NotNull(message = "Package name is required")
@@ -17,6 +19,12 @@ public class GymPackageCreateRequest {
 
     @NotNull(message = "Package price is required")
     private double price;
+
+    @NotNull(message = "Package price is required")
+    private LocalDate startDate;
+
+    @NotNull(message = "Package price is required")
+    private LocalDate endDate;
 
     @NotNull(message = "Duration is required")
     private String duration;

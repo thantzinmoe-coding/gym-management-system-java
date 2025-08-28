@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org._java_proj.gym_management_system.common.constant.GymPackageType;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -29,6 +31,14 @@ public class GymPackageUpdateRequest {
     @NotNull(message = "Package price is required")
     @Schema(description = "Gym Package Price", example = "65000")
     private double price;
+
+    @NotNull(message = "Package price is required")
+    @Schema(description = "Gym Package start date", example = "2025-09-26")
+    private LocalDate startDate;
+
+    @NotNull(message = "Package price is required")
+    @Schema(description = "Gym Package end date", example = "2025-12-26")
+    private LocalDate endDate;
 
     @NotNull(message = "Duration is required")
     @Schema(description = "Gym Package Duration", example = "3 Months")

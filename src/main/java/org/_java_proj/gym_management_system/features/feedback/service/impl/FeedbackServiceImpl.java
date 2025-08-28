@@ -149,6 +149,8 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .message("Feedback deleted successfully.")
                 .build();
     }
+
+
     @Override
     public ApiResponse getAverageRatingByTrainer(Long trainerId) {
         Double averageRating = feedbackRepository.findAverageRatingByTrainerId(trainerId);

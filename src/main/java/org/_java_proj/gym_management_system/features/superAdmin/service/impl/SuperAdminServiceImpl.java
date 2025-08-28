@@ -107,7 +107,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
         AcceptedBookingResponse dto =  new AcceptedBookingResponse();
         dto.setBookingId(booking.getId());
-        dto.setMemberId(booking.getEntityId());
+        dto.setMemberId(booking.getUser().getId());
         dto.setMemberStatus(booking.getMemberStatus());
         dto.setGymPackageId(booking.getGymPackage().getId());
         dto.setGymPackageName(booking.getGymPackage().getName());
