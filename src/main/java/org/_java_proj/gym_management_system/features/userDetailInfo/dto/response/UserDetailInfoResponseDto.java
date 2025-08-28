@@ -8,8 +8,6 @@ public class UserDetailInfoResponseDto {
 
     private double height;
 
-    private String healthInfo;
-
     private String goal;
 
     private Integer experience;

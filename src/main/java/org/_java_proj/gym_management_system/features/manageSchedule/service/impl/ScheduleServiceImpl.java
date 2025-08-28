@@ -35,7 +35,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     @Transactional
     public ApiResponse createSchedule(ScheduleCreateRequest request) {
-        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(request.getPackageId(), Status.INACTIVE)
+        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(request.getPackageId(), Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("No gym package found with id "+request.getPackageId()));
 
 

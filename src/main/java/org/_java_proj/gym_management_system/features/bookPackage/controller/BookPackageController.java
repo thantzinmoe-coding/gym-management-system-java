@@ -246,5 +246,20 @@ public class BookPackageController {
         PaginatedApiResponse<BookPackageDetailResponseDto> response = this.bookPackageService.getAllBookingsByPackage(packageId, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);
     }
+
+    @Operation(
+            summary = "Get distinct user count by trainer",
+            description = "Returns the number of unique users who have booked a package assigned to the trainer"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User count retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
+    })
+    @GetMapping("/trainer/{trainerId}/user-count")
+    public ResponseEntity<Long> getUserCountByTrainer(
+            @PathVariable Long trainerId) {
+        Long count = bookPackageService.getUserCountByTrainer(trainerId);
+        return ResponseEntity.ok(count);
+    }
 }
 

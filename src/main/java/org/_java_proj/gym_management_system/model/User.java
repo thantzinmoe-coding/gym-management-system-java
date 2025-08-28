@@ -1,15 +1,12 @@
 package org._java_proj.gym_management_system.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -42,14 +39,12 @@ public class User extends MasterData {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Attendance> attendance;
 
-    @OneToOne(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Chat sender;
-
-    @OneToOne(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Chat receiver;
-
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<AssignedGymSchedule> assignedSchedules = new ArrayList<>();
+    private List<AssignedGymPackage> assignedSchedules = new ArrayList<>();
+
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ClassGroup> groups = new ArrayList<>();
 
     @OneToMany(mappedBy = "sender")
     @JsonManagedReference // The forward part of the reference

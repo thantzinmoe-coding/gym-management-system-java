@@ -19,13 +19,13 @@ import java.util.Optional;
 public interface BookPackageRepository extends JpaRepository<Booking, Long> {
 
     // Existing methods
-    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.entityId = :memberId AND b.memberStatus IN :activeStatuses")
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE b.user.id = :memberId AND b.memberStatus IN :activeStatuses")
     boolean hasActiveBooking(@Param("memberId") Long memberId, @Param("activeStatuses") List<MemberStatus> activeStatuses);
 
-    @Query("SELECT b FROM Booking b WHERE b.entityId = :memberId AND b.memberStatus IN :activeStatuses")
+    @Query("SELECT b FROM Booking b WHERE b.user.id = :memberId AND b.memberStatus IN :activeStatuses")
     Optional<Booking> findActiveBookingByMemberId(@Param("memberId") Long memberId, @Param("activeStatuses") List<MemberStatus> activeStatuses);
 
-    @Query("SELECT b FROM Booking b WHERE b.entityId = :memberId ORDER BY b.createdAt DESC")
+    @Query("SELECT b FROM Booking b WHERE b.user.id = :memberId ORDER BY b.createdAt DESC")
     List<Booking> findBookingHistoryByMemberId(@Param("memberId") Long memberId);
 
     // New methods for the additional endpoints
@@ -44,9 +44,9 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
             "ORDER BY COUNT(b) DESC")
     List<Object[]> findTopBookedGymPackages(@Param("limit") int limit);
 
-    boolean existsByEntityIdAndMemberStatus(@NotBlank(message = "Entity ID is required") Long entityId, MemberStatus status);
+    boolean existsByUserIdAndMemberStatus(@NotBlank(message = "Entity ID is required") Long entityId, MemberStatus status);
 
-    Page<Booking> findByEntityId(Long memberId, Pageable pageable);
+    Page<Booking> findByUserId(Long memberId, Pageable pageable);
 
     Page<Booking> findByGymPackageId(Long packageId, Pageable pageable);
 
@@ -56,20 +56,20 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
     // In BookingRepository
     @Query("SELECT new org._java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse(" +
             "b.id, " +
-            "b.entityId, " +
+            "b.user.id, " +
             "p.name, " +
             "b.gymPackage.id, " +
             "g.name, " +
             "b.memberStatus) " +
             "FROM Booking b " +
-            "LEFT JOIN User u ON u.id = b.entityId " +
+            "LEFT JOIN User u ON u.id = b.user.id " +
             "LEFT JOIN Profile p ON p.user.id = u.id " +
             "LEFT JOIN GymPackage g ON g.id = b.gymPackage.id " +
             "WHERE (:status IS NULL OR b.memberStatus = :status ) " +
             "AND (:keyword IS NULL OR :keyword = '' OR " +
             "     LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "     LOWER(g.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "AND (:memberId IS NULL OR b.entityId = :memberId) " +
+            "AND (:memberId IS NULL OR b.user.id = :memberId) " +
             "AND (:packageId IS NULL OR b.gymPackage.id = :packageId)")
     Page<BookingDetailResponse> findPendingBookingsWithDetails(
             @Param("status") MemberStatus status,
@@ -78,6 +78,12 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
             @Param("packageId") Long packageId,
             Pageable pageable
     );
+
+    @Query("SELECT COUNT(DISTINCT b.user.id) " +
+            "FROM Booking b " +
+            "JOIN AssignedGymPackage agp ON agp.assignedGymPackage.id = b.gymPackage.id " +
+            "WHERE agp.trainer.id = :trainerId")
+    Long countDistinctUsersByTrainer(@Param("trainerId") Long trainerId);
 
 
 }

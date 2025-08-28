@@ -9,8 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
-import org._java_proj.gym_management_system.features.assignedSchedule.dto.request.AssignedScheduleRequest;
-import org._java_proj.gym_management_system.features.assignedSchedule.service.AssignedScheduleService;
+import org._java_proj.gym_management_system.features.assignedSchedule.dto.request.AssignedGymPackageRequest;
+import org._java_proj.gym_management_system.features.assignedSchedule.service.AssignedGymPackageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Assign Schedule API", description = "Endpoints for assigning schedule for trainer")
 public class AssignedScheduleController {
-    private final AssignedScheduleService assignedScheduleService;
+    private final AssignedGymPackageService assignedGymPackageService;
 
     @PostMapping
     @Operation(
@@ -28,19 +28,19 @@ public class AssignedScheduleController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Assign schedule request",
                     required = true,
-                    content = @Content(schema = @Schema(implementation = AssignedScheduleRequest.class))
+                    content = @Content(schema = @Schema(implementation = AssignedGymPackageRequest.class))
             ),
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Trainer assigned successfully"),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request")
             }
     )
-    public ResponseEntity<ApiResponse> assignedGymSchedule(@RequestBody AssignedScheduleRequest assignedScheduleRequest, HttpServletRequest request) {
-        ApiResponse response = this.assignedScheduleService.assignedSchedule(assignedScheduleRequest);
+    public ResponseEntity<ApiResponse> assignedGymSchedule(@RequestBody AssignedGymPackageRequest assignedGymPackageRequest, HttpServletRequest request) {
+        ApiResponse response = this.assignedGymPackageService.assignedGymPackage(assignedGymPackageRequest);
         return ResponseUtils.buildResponse(request, response);
     }
 
-    @PostMapping("{id}")
+    @DeleteMapping("{id}")
     @Operation(
             summary = "Trainer unassign schedule",
             description = "Unassigned a schedule by a trainer with his id",
@@ -53,7 +53,7 @@ public class AssignedScheduleController {
             }
     )
     public ResponseEntity<ApiResponse> unassignedSchedule(@PathVariable("id") Long trainerID, HttpServletRequest request) {
-        ApiResponse response = this.assignedScheduleService.unassignedSchedule(trainerID);
+        ApiResponse response = this.assignedGymPackageService.unassignedGymPackage(trainerID);
         return ResponseUtils.buildResponse(request, response);
     }
 }

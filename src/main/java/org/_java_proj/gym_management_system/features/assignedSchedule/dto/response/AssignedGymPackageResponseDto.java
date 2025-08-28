@@ -3,7 +3,7 @@ package org._java_proj.gym_management_system.features.assignedSchedule.dto.respo
 import lombok.Data;
 
 @Data
-public class AssignedScheduleResponseDto {
+public class AssignedGymPackageResponseDto {
     private Long id;
 
     private Long trainerID;

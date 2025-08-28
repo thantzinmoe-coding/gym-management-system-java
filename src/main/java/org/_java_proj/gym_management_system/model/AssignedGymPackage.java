@@ -8,19 +8,18 @@ import org._java_proj.gym_management_system.common.entity.MasterData;
 @Entity
 @Getter
 @Setter
-public class AssignedGymSchedule extends MasterData {
-
+public class AssignedGymPackage extends MasterData {
 
     // In AssignedGymSchedule entity
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "trainer_id", nullable = false)
+    @JoinColumn(name = "trainer_id")
     private User trainer;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "schedule_id", nullable = false)
-    private Schedule assignedGymSchedule;
+    @JoinColumn(name = "assignedGymPackage_id")
+    private GymPackage assignedGymPackage;
 
-    public AssignedGymSchedule(){}
+    public AssignedGymPackage(){}
 
 
 }

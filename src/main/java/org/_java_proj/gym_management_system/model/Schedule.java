@@ -1,6 +1,5 @@
 package org._java_proj.gym_management_system.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,9 +26,6 @@ public class Schedule extends MasterData {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gymPackage_id", nullable = false)
     private GymPackage gymPackage;
-
-    @OneToMany(mappedBy = "assignedGymSchedule", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
-    private List<AssignedGymSchedule> assignedGymSchedule = new ArrayList<>();
 
     public Schedule() {}
 }

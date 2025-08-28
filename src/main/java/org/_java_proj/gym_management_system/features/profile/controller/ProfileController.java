@@ -86,7 +86,7 @@ public class ProfileController {
                                                         "dob": "1990-01-01",
                                                         "gender": "MALE",
                                                         "profilePic": "null",
-                                                        "address": "1990-01-01"
+                                                        "address": "No.123, Main Road, Yangon"
                                                       },
                                                       "message": "Profile created successfully"
                                                     }"""
@@ -364,7 +364,7 @@ public class ProfileController {
                         "method": "GET"
                       },
                       "data": {
-                        "name": "Hahah",
+                        "name": "Hahaha",
                         "nrc": "12/ABC(N)123457",
                         "phone": "09123456788",
                         "dob": "2001-05-10",

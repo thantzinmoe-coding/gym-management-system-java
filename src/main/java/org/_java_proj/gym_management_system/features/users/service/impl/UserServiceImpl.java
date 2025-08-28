@@ -136,7 +136,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
     @Override
     public ApiResponse getUserAuthData(AuthRequestDto requestDto, String token, String refreshToken) {
         boolean saveRefreshToken = true;

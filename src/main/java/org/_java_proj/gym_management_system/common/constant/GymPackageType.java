@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum AddressEntityType implements BaseEnum<Integer> {
-    TRAINER(1),
-    MEMBER(2);
+public enum GymPackageType implements BaseEnum<Integer> {
+    PERSONAL(1),
+    GROUP(2);
 
     private final int value;
 

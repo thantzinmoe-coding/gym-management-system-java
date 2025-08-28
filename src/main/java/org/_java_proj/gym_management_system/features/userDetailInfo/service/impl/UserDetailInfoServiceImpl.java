@@ -51,7 +51,6 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
         UserDetailInfo userDetailInfo = new UserDetailInfo();
         userDetailInfo.setWeight(createRequest.getWeight());
         userDetailInfo.setHeight(createRequest.getHeight());
-        userDetailInfo.setHealthInfo(createRequest.getHealthInfo());
         userDetailInfo.setGoal(createRequest.getGoal());
         userDetailInfo.setExperience(createRequest.getExperience());
         userDetailInfo.setSpecialization(createRequest.getSpecialization());
@@ -81,7 +80,6 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
         userDetailInfo.setId(id);
         userDetailInfo.setWeight(updateRequest.getWeight());
         userDetailInfo.setHeight(updateRequest.getHeight());
-        userDetailInfo.setHealthInfo(updateRequest.getHealthInfo());
         userDetailInfo.setGoal(updateRequest.getGoal());
         userDetailInfo.setExperience(updateRequest.getExperience());
         userDetailInfo.setSpecialization(updateRequest.getSpecialization());
