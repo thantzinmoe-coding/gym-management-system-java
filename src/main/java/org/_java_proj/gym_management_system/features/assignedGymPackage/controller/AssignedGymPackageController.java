@@ -1,4 +1,4 @@
-package org._java_proj.gym_management_system.features.assignedSchedule.controller;
+package org._java_proj.gym_management_system.features.assignedGymPackage.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -9,8 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
-import org._java_proj.gym_management_system.features.assignedSchedule.dto.request.AssignedGymPackageRequest;
-import org._java_proj.gym_management_system.features.assignedSchedule.service.AssignedGymPackageService;
+import org._java_proj.gym_management_system.features.assignedGymPackage.dto.request.AssignedGymPackageRequest;
+import org._java_proj.gym_management_system.features.assignedGymPackage.service.AssignedGymPackageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("${api.base.path}/assign-schedule")
 @RequiredArgsConstructor
 @Tag(name = "Assign Schedule API", description = "Endpoints for assigning schedule for trainer")
-public class AssignedScheduleController {
+public class AssignedGymPackageController {
     private final AssignedGymPackageService assignedGymPackageService;
 
     @PostMapping

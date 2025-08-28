@@ -1,7 +1,5 @@
 package org._java_proj.gym_management_system.features.manageAttendance.service.impl;
 
-
-
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,20 +15,14 @@ import org._java_proj.gym_management_system.model.Profile;
 import org._java_proj.gym_management_system.common.constant.AttendanceType; // Corrected import
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AttendanceServiceImpl implements AttendanceService {
-    private final PasswordEncoder passwordEncoder;
     private final AttendanceRepository attendanceRepository;
     private final UserRepository userRepository;
 
@@ -48,7 +40,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         if (request.getAttendanceType() == AttendanceType.TRAINER) {
             attendance.setHoursWorked(request.getHoursWorked());
-        } else if (request.getAttendanceType() == AttendanceType.USER) {
+        } else if (request.getAttendanceType() == AttendanceType.MEMBER) {
             attendance.setPackageDays(request.getPackageDays());
         }
 
@@ -81,14 +73,14 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public ApiResponse listAllAttendances() {
         List<Attendance> attendances = attendanceRepository.findAll();
-        List<AttendanceResponseDto> dtos = attendances.stream()
+        List<AttendanceResponseDto> dto = attendances.stream()
                 .map(this::mapToDto)
-                .collect(Collectors.toList());
+                .toList();
 
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(Map.of("attendances", dtos))
+                .data(Map.of("attendances", dto))
                 .message("All attendance records fetched.")
                 .build();
     }
@@ -99,14 +91,14 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
 
         List<Attendance> userAttendances = attendanceRepository.findByUser(user);
-        List<AttendanceResponseDto> dtos = userAttendances.stream()
+        List<AttendanceResponseDto> dto = userAttendances.stream()
                 .map(this::mapToDto)
                 .toList();
 
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(Map.of("attendances", dtos))
+                .data(Map.of("attendances", dto))
                 .message("Attendance records for user fetched.")
                 .build();
     }
@@ -183,13 +175,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 dto.setUserRole(attendance.getUser().getRole().getName());
             }
         }
-
-        if (attendance.getTimeIn() != null && attendance.getTimeOut() != null) {
-            Duration duration = Duration.between(attendance.getTimeIn(), attendance.getTimeOut());
-            dto.setDurationInMinutes(duration.toMinutes());
-        } else {
-            dto.setDurationInMinutes(null);
-        }
+        dto.setPackageDays(attendance.getPackageDays());
+        dto.setAttendanceType(attendance.getAttendanceType());
 
         return dto;
     }

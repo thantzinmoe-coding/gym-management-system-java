@@ -20,4 +20,6 @@ public interface FeedbackService {
 
     @PreAuthorize("hasRole('ROLE_MEMBER')")
     ApiResponse deleteFeedback(Long id);
+
+    ApiResponse getAverageRatingByTrainer(Long trainerId);
 }

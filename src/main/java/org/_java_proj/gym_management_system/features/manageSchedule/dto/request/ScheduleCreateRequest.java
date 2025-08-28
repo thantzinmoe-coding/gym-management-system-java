@@ -7,7 +7,7 @@ import lombok.Data;
 public class ScheduleCreateRequest {
 
     @NotNull(message = "Schedule day is required")
-    private String days;
+    private String day;
 
     @NotNull(message = "Start time is required")
     private String startTime;
@@ -15,6 +15,4 @@ public class ScheduleCreateRequest {
     @NotNull(message = "End time is required")
     private String endTime;
 
-    @NotNull(message = "Package ID is required")
-    private Long packageId;
 }

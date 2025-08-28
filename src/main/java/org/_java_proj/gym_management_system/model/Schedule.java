@@ -14,7 +14,6 @@ import java.util.List;
 public class Schedule extends MasterData {
 
     @Column(nullable = false)
-
     private String startTime;
 
     @Column(nullable = false)
@@ -22,6 +21,7 @@ public class Schedule extends MasterData {
 
     @Column(nullable = false)
     private String day;
+
     // ✅ Many schedules belong to one package
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gymPackage_id", nullable = false)

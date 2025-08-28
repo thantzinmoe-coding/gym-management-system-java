@@ -48,6 +48,8 @@ public class GymPackageController {
                                                   "description": "premium package for gym management system",
                                                   "gymPackageType": "PERSONAL",
                                                   "price": 70000,
+                                                  "startDate": "2025-08-29",
+                                                  "endDate": "2025-09-29",
                                                   "duration": "1 month"
                                                }
                                              """
@@ -76,6 +78,8 @@ public class GymPackageController {
                                                           "description": "premium package for gym management system",
                                                           "gymPackageType": "PERSONAL",
                                                           "price": 70000,
+                                                          "startDate": "2025-08-29",
+                                                          "endDate": "2025-09-29",
                                                           "duration": "1 month",
                                                       },
                                                       "message": "Package created successfully"
