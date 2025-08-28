@@ -2,6 +2,8 @@ package org._java_proj.gym_management_system.features.managePackage.service.impl
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.GymPackageType;
+import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
@@ -35,6 +37,7 @@ public class GymPackageServiceImpl implements GymPackageService {
 
         gymPackage.setName(request.getName());
         gymPackage.setDescription(request.getDescription());
+        gymPackage.setGymPackageType(request.getGymPackageType());
         gymPackage.setPrice(request.getPrice());
         gymPackage.setDuration(request.getDuration());
 
@@ -42,14 +45,14 @@ public class GymPackageServiceImpl implements GymPackageService {
 
         GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
 
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
+        return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("Package: ", dto))
                 .message("Package created Successfully.").build();
     }
 
     @Override
     public ApiResponse getGymPackageById(Long gymPackageId) {
-        GymPackage gymPackage = this.gymPackageRepository.findById(gymPackageId)
+        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(gymPackageId, Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("Gym package not with this id: "+gymPackageId));
 
         GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
@@ -85,24 +88,37 @@ public class GymPackageServiceImpl implements GymPackageService {
 
 
     @Override
+    public PaginatedApiResponse<GymPackageResponseDto> getGymPackagesByType(GymPackageType type, Pageable pageable) {
+        Page<GymPackage> page = this.gymPackageRepository.findByGymPackageType(type, pageable);
+
+        List<GymPackageResponseDto> data = page.getContent().stream()
+                .map(gymPackage -> modelMapper.map(gymPackage, GymPackageResponseDto.class))
+                .toList();
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(page.getTotalElements());
+        meta.setTotalPages(page.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<GymPackageResponseDto>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Fetched successfully")
+                .meta(meta)
+                .data(data)
+                .build();
+    }
+
+    @Override
     public ApiResponse updateGymPackage(Long id, GymPackageUpdateRequest request) {
         GymPackage gymPackage = gymPackageRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Gym package not found with this ID: "+ id));
 
         Optional.ofNullable(request.getName()).ifPresent(gymPackage::setName);
         Optional.ofNullable(request.getDescription()).ifPresent(gymPackage::setDescription);
+        Optional.ofNullable(request.getGymPackageType()).ifPresent(gymPackage::setGymPackageType);
         Optional.of(request.getPrice()).ifPresent(gymPackage::setPrice);
         Optional.ofNullable(request.getDuration()).ifPresent(gymPackage::setDuration);
-
-        System.out.println(gymPackage.getName());
-        System.out.println(gymPackage.getDescription());
-        System.out.println(gymPackage.getPrice());
-        System.out.println(gymPackage.getDuration());
-
-        System.out.println(request.getName());
-        System.out.println(request.getDescription());
-        System.out.println(request.getPrice());
-        System.out.println(request.getDuration());
 
         gymPackageRepository.save(gymPackage);
 
@@ -122,7 +138,12 @@ public class GymPackageServiceImpl implements GymPackageService {
         GymPackage gymPackage = gymPackageRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Gym package not found with this ID: "+ id));
 
-        this.gymPackageRepository.delete(gymPackage);
+        gymPackage.delete();
+        gymPackage.setName(null);
+        gymPackage.setDescription(null);
+        gymPackage.setPrice(0);
+        gymPackage.setDuration(null);
+        this.gymPackageRepository.save(gymPackage);
 
         return ApiResponse.builder().success(1)
                 .code(HttpStatus.OK.value())

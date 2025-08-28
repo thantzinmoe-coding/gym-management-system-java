@@ -15,6 +15,7 @@ import org._java_proj.gym_management_system.model.Profile;
 import org._java_proj.gym_management_system.model.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -86,7 +87,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         return ApiResponse.builder()
                 .success(1)
-                .code(200)
+                .code(HttpStatus.CREATED.value())
                 .meta(null)
                 .data(response)
                 .message("Profile created successfully")

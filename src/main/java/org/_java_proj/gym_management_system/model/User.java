@@ -1,12 +1,12 @@
 package org._java_proj.gym_management_system.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Getter
@@ -24,10 +24,8 @@ public class User extends MasterData {
     private Role role;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
     private Profile profile;
-
-    @OneToOne(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Booking booking;
 
     @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Salary salary;
@@ -38,28 +36,30 @@ public class User extends MasterData {
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Feedback> receivedFeedback = new HashSet<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Attendance attendance;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Attendance> attendance;
 
-    @OneToOne(mappedBy = "sender", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Chat sender;
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<AssignedGymPackage> assignedSchedules = new ArrayList<>();
 
-    @OneToOne(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private Chat receiver;
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ClassGroup> groups = new ArrayList<>();
 
-    @OneToOne(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private AssignedGymSchedule trainer;
+    @OneToMany(mappedBy = "sender")
+    @JsonManagedReference // The forward part of the reference
+    private List<Notification> sentNotifications;
 
     public User() {}
 
     public void giveRating(final Feedback feedback) {
         this.givenFeedback.add(feedback);
-        feedback.setTrainer(this);
+        feedback.setMember(this);
     }
 
     public void removeGivenRating(final Feedback feedback) {
         this.givenFeedback.remove(feedback);
-        feedback.setTrainer(null);
+        feedback.setMember(null);
     }
 
     public void receiveRating(final Feedback feedback) {
@@ -71,4 +71,5 @@ public class User extends MasterData {
         this.receivedFeedback.remove(feedback);
         feedback.setTrainer(null);
     }
+
 }
