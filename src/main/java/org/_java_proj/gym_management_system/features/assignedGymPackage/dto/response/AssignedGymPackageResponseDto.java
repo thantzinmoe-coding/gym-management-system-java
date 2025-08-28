@@ -1,4 +1,4 @@
-package org._java_proj.gym_management_system.features.assignedSchedule.dto.response;
+package org._java_proj.gym_management_system.features.assignedGymPackage.dto.response;
 
 import lombok.Data;
 

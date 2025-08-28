@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -104,8 +103,8 @@ public class BookPackageServiceImpl implements BookPackageService {
             throw new EntityCreationException("Cannot cancel a active booking");
         }
 
+        booking.delete();
         booking.setMemberStatus(MemberStatus.CANCELLED);
-        booking.setDeletedAt(LocalDateTime.now());
         bookPackageRepository.save(booking);
 
         BookPackageResponseDto dto = new BookPackageResponseDto();
@@ -215,6 +214,8 @@ public class BookPackageServiceImpl implements BookPackageService {
         dto.setGymPackageName(gymPackage.getName());
         dto.setGymPackageDescription(gymPackage.getDescription());
         dto.setPrice(gymPackage.getPrice());
+        dto.setStartDate(gymPackage.getStartDate());
+        dto.setEndDate(gymPackage.getEndDate());
         dto.setDuration(gymPackage.getDuration());
         if(schedule.isPresent()) {
             dto.setStartTime(schedule.get().getStartTime());

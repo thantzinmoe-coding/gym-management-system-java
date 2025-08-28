@@ -1,4 +1,4 @@
-package org._java_proj.gym_management_system.features.assignedSchedule.dto.request;
+package org._java_proj.gym_management_system.features.assignedGymPackage.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

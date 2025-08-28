@@ -1,4 +1,4 @@
-package org._java_proj.gym_management_system.features.assignedSchedule.repository;
+package org._java_proj.gym_management_system.features.assignedGymPackage.repository;
 
 import jakarta.validation.constraints.NotBlank;
 import org._java_proj.gym_management_system.common.constant.Status;

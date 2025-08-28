@@ -40,6 +40,8 @@ public class GymPackageServiceImpl implements GymPackageService {
         gymPackage.setGymPackageType(request.getGymPackageType());
         gymPackage.setPrice(request.getPrice());
         gymPackage.setDuration(request.getDuration());
+        gymPackage.setStartDate(request.getStartDate());
+        gymPackage.setEndDate(request.getEndDate());
 
         gymPackageRepository.save(gymPackage);
 

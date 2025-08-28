@@ -2,13 +2,12 @@ package org._java_proj.gym_management_system.features.manageSchedule.service.imp
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginationMeta;
 import org._java_proj.gym_management_system.features.managePackage.repository.GymPackageRepository;
-import org._java_proj.gym_management_system.features.manageSchedule.dto.request.ScheduleCreateRequest;
+import org._java_proj.gym_management_system.features.manageSchedule.dto.request.ScheduleBulkRequest;
 import org._java_proj.gym_management_system.features.manageSchedule.dto.request.ScheduleUpdateRequest;
 import org._java_proj.gym_management_system.features.manageSchedule.dto.response.ScheduleResponseDto;
 import org._java_proj.gym_management_system.features.manageSchedule.repository.ScheduleRepository;
@@ -34,26 +33,32 @@ public class ScheduleServiceImpl implements ScheduleService {
 
     @Override
     @Transactional
-    public ApiResponse createSchedule(ScheduleCreateRequest request) {
-        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(request.getPackageId(), Status.ACTIVE)
-                .orElseThrow(()-> new EntityNotFoundException("No gym package found with id "+request.getPackageId()));
+    public List<ScheduleResponseDto> createSchedules(ScheduleBulkRequest request) {
+        GymPackage gymPackage = gymPackageRepository.findById(request.getGymPackageId())
+                .orElseThrow(() -> new RuntimeException("GymPackage not found"));
 
+        List<Schedule> schedules = request.getSchedules().stream()
+                .map(req -> {
+                    Schedule schedule = new Schedule();
+                    schedule.setStartTime(req.getStartTime());
+                    schedule.setEndTime(req.getEndTime());
+                    schedule.setDay(req.getDay());
+                    schedule.setGymPackage(gymPackage);
+                    return schedule;
+                }).toList();
 
-        Schedule schedule = new Schedule();
-        schedule.setDay(request.getDays());
-        schedule.setStartTime(request.getStartTime());
-        schedule.setEndTime(request.getEndTime());
-        // TODO: set trainer & package entities by ID
-        schedule.setGymPackage(gymPackage);
+        List<Schedule> saved = scheduleRepository.saveAll(schedules);
 
-        scheduleRepository.save(schedule);
-
-        ScheduleResponseDto dto = modelMapper.map(schedule, ScheduleResponseDto.class);
-        return ApiResponse.builder()
-                .success(1).code(HttpStatus.CREATED.value())
-                .data(Map.of("Schedule", dto))
-                .message("Schedule created successfully.")
-                .build();
+        return saved.stream().map(s -> {
+            ScheduleResponseDto resp = new ScheduleResponseDto();
+            resp.setId(s.getId());
+            resp.setStartTime(s.getStartTime());
+            resp.setEndTime(s.getEndTime());
+            resp.setDay(s.getDay());
+            resp.setPackageId(s.getGymPackage().getId());
+            resp.setPackageName(s.getGymPackage().getName());
+            return resp;
+        }).toList();
     }
 
     @Override

@@ -1,14 +1,14 @@
-package org._java_proj.gym_management_system.features.assignedSchedule.service.impl;
+package org._java_proj.gym_management_system.features.assignedGymPackage.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityCreationException;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
-import org._java_proj.gym_management_system.features.assignedSchedule.dto.request.AssignedGymPackageRequest;
-import org._java_proj.gym_management_system.features.assignedSchedule.dto.response.AssignedGymPackageResponseDto;
-import org._java_proj.gym_management_system.features.assignedSchedule.repository.AssignedGymPackageRepository;
-import org._java_proj.gym_management_system.features.assignedSchedule.service.AssignedGymPackageService;
+import org._java_proj.gym_management_system.features.assignedGymPackage.dto.request.AssignedGymPackageRequest;
+import org._java_proj.gym_management_system.features.assignedGymPackage.dto.response.AssignedGymPackageResponseDto;
+import org._java_proj.gym_management_system.features.assignedGymPackage.repository.AssignedGymPackageRepository;
+import org._java_proj.gym_management_system.features.assignedGymPackage.service.AssignedGymPackageService;
 import org._java_proj.gym_management_system.features.managePackage.repository.GymPackageRepository;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.model.AssignedGymPackage;
@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
         // Validate trainer exists and is not a MEMBER
         User trainer = this.userRepository.findById(request.getTrainerID())
                 .orElseThrow(() -> new EntityNotFoundException("Trainer not found with id " + request.getTrainerID()));
-        if (trainer.getRole() != null && "MEMBER".equals(trainer.getRole().getName())) {
+        if (trainer.getRole() != null && "MEMBER".equals(trainer.getRole().getName()) || "ADMIN".equals(Objects.requireNonNull(trainer.getRole()).getName())) {
             throw new EntityCreationException("Member cannot assign to package.");
         }
 
