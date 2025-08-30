@@ -19,4 +19,6 @@ public interface BookPackageService {
     ApiResponse getBookingById(Long id);
 
     PaginatedApiResponse<BookPackageDetailResponseDto> getAllBookingsByPackage(Long packageId, Pageable pageable);
+
+    Long getUserCountByTrainer(Long trainerId);
 }

@@ -16,8 +16,9 @@ public class Booking extends MasterData {
     @Convert(converter = MemberStatusConverter.class)
     private MemberStatus memberStatus;
 
-    @Column(name = "entity_id")
-    private Long entityId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     // Removed unique = true constraint - multiple bookings can have same package
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

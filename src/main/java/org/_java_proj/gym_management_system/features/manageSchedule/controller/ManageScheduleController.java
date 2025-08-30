@@ -11,9 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
-import org._java_proj.gym_management_system.features.managePackage.dto.request.GymPackageCreateRequest;
-import org._java_proj.gym_management_system.features.managePackage.dto.request.GymPackageUpdateRequest;
-import org._java_proj.gym_management_system.features.manageSchedule.dto.request.ScheduleCreateRequest;
+import org._java_proj.gym_management_system.features.manageSchedule.dto.request.ScheduleBulkRequest;
 import org._java_proj.gym_management_system.features.manageSchedule.dto.request.ScheduleUpdateRequest;
 import org._java_proj.gym_management_system.features.manageSchedule.dto.response.ScheduleResponseDto;
 import org._java_proj.gym_management_system.features.manageSchedule.service.ScheduleService;
@@ -23,6 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("${api.base.path}/schedule")
 @RequiredArgsConstructor
@@ -31,85 +31,109 @@ public class ManageScheduleController {
 
     private final ScheduleService scheduleService;
 
-    @PostMapping
+    @PostMapping("/bulk")
     @Operation(
-            summary = "Create a schedule",
-            description = "Create a schedule for the gym management system",
+            summary = "Create multiple schedules",
+            description = "Create multiple schedules for a single gym package in one request",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Gym schedule request with JSON",
+                    description = "Gym package ID with multiple schedule requests",
                     required = true,
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ScheduleCreateRequest.class),
+                            schema = @Schema(implementation = ScheduleBulkRequest.class),
                             examples = @ExampleObject(
-                                    name = "Example schedule",
+                                    name = "Bulk schedule example",
                                     value = """
-                                               {
-                                                  "days": "Monday",
-                                                  "startTime": "3PM",
-                                                  "endTime": "5PM",
-                                                  "packageId": 1
-                                               }
-                                             """
+                                           {
+                                              "gymPackageId": 1,
+                                              "schedules": [
+                                                {
+                                                  "day": "Monday",
+                                                  "startTime": "08:00",
+                                                  "endTime": "10:00"
+                                                },
+                                                {
+                                                  "day": "Wednesday",
+                                                  "startTime": "18:00",
+                                                  "endTime": "20:00"
+                                                },
+                                                {
+                                                  "day": "Friday",
+                                                  "startTime": "07:00",
+                                                  "endTime": "09:00"
+                                                }
+                                              ]
+                                           }
+                                         """
                             )
-
                     )
             ),
             responses = {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200",
-                            description = "Schedule created successfully",
+                            description = "Schedules created successfully",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
                                             name = "Success Response",
                                             value = """
+                                                {
+                                                  "success": 1,
+                                                  "code": 200,
+                                                  "meta": {
+                                                    "endpoint": "/api/v1/schedules/bulk",
+                                                    "method": "POST"
+                                                  },
+                                                  "data": [
                                                     {
-                                                      "success": 1,
-                                                      "code": 200,
-                                                      "meta": {
-                                                        "endpoint": "/api/v1/gym-package",
-                                                        "method": "POST"
-                                                      },
-                                                      "data": {
-                                                          "day": "Monday",
-                                                          "startTime": "3PM",
-                                                          "endTime": "5PM",
-                                                          "packageId": 1
-                                                       },
-                                                      "message": "Schedule created successfully"
-                                                    }"""
+                                                      "id": 1,
+                                                      "day": "Monday",
+                                                      "startTime": "08:00",
+                                                      "endTime": "10:00",
+                                                      "gymPackageId": 1
+                                                    },
+                                                    {
+                                                      "id": 2,
+                                                      "day": "Wednesday",
+                                                      "startTime": "18:00",
+                                                      "endTime": "20:00",
+                                                      "gymPackageId": 1
+                                                    },
+                                                    {
+                                                      "id": 3,
+                                                      "day": "Friday",
+                                                      "startTime": "07:00",
+                                                      "endTime": "09:00",
+                                                      "gymPackageId": 1
+                                                    }
+                                                  ],
+                                                  "message": "Schedules created successfully"
+                                                }"""
                                     )
                             )
-
-
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400",
-                            description = "Invalid input or error creating schedule",
+                            description = "Invalid input or error creating schedules",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = ApiResponse.class),
                                     examples = @ExampleObject(
-                                            name = "Error response example",
+                                            name = "Error Response",
                                             value = """
-                                                    {
-                                                      "success": 0,
-                                                      "code": 400,
-                                                      "meta": null,
-                                                      "data": null,
-                                                      "message": "Invalid input or error creating schedule"
-                                                    }"""
+                                                {
+                                                  "success": 0,
+                                                  "code": 400,
+                                                  "meta": null,
+                                                  "data": null,
+                                                  "message": "Invalid input or error creating schedules"
+                                                }"""
                                     )
                             )
                     )
             }
     )
-    public ResponseEntity<ApiResponse> createSchedule(
-            @RequestBody ScheduleCreateRequest request,
-            HttpServletRequest httpRequest
-    ) {
-        ApiResponse response = scheduleService.createSchedule(request);
-        return ResponseUtils.buildResponse(httpRequest, response);
+    public ResponseEntity<List<ScheduleResponseDto>> createBulk(@RequestBody ScheduleBulkRequest request) {
+        return ResponseEntity.ok(scheduleService.createSchedules(request));
     }
 
     @GetMapping("/{id}")

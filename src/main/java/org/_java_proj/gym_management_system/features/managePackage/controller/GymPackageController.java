@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.GymPackageType;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
@@ -45,7 +46,10 @@ public class GymPackageController {
                                                {
                                                   "name": "Premium package",
                                                   "description": "premium package for gym management system",
+                                                  "gymPackageType": "PERSONAL",
                                                   "price": 70000,
+                                                  "startDate": "2025-08-29",
+                                                  "endDate": "2025-09-29",
                                                   "duration": "1 month"
                                                }
                                              """
@@ -72,7 +76,10 @@ public class GymPackageController {
                                                       "data": {
                                                           "name": "Premium package",
                                                           "description": "premium package for gym management system",
+                                                          "gymPackageType": "PERSONAL",
                                                           "price": 70000,
+                                                          "startDate": "2025-08-29",
+                                                          "endDate": "2025-09-29",
                                                           "duration": "1 month",
                                                       },
                                                       "message": "Package created successfully"
@@ -146,6 +153,27 @@ public class GymPackageController {
         Pageable pageable = PageRequest.of(page, size);
         final PaginatedApiResponse<GymPackageResponseDto> response = this.gymPackageService.getAllGymPackages(pageable);
 
+        return ResponseUtils.buildPaginatedResponse(request, response);
+    }
+
+    @GetMapping("{type}/get-by-type")
+    @Operation(
+            summary = "Get all Gym packages by type.",
+            description = "Get gym package detail.",
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Fetched successfully"),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Gym package not found")
+            }
+    )
+    public ResponseEntity<PaginatedApiResponse<GymPackageResponseDto>> getGymPackagesByType(
+            @PathVariable("type") GymPackageType type,
+            @Parameter(description = "Page number")
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Page size")
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            HttpServletRequest request) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedApiResponse<GymPackageResponseDto> response = this.gymPackageService.getGymPackagesByType(type, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);
     }
 

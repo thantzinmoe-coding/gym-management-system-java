@@ -1,9 +1,12 @@
 package org._java_proj.gym_management_system.features.manageAttendance.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import java.time.LocalDateTime;
 
 @Data
+@Schema(description = "Request to update a existing attendance")
 public class AttendanceUpdateRequest {
-    private LocalDateTime timeOut;
+
+    @Schema(description = "Attendance time out", example = "5PM")
+    private String timeOut;
 }

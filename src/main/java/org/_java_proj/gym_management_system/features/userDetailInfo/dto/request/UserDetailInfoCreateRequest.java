@@ -9,8 +9,6 @@ public class UserDetailInfoCreateRequest {
 
     private double height;
 
-    private String healthInfo;
-
     private String goal;
 
     private Integer experience;
