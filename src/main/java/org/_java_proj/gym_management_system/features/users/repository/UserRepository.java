@@ -1,6 +1,7 @@
 package org._java_proj.gym_management_system.features.users.repository;
 
 import org._java_proj.gym_management_system.common.constant.Status;
+import org._java_proj.gym_management_system.features.users.dto.request.UserLoginProjection;
 import org._java_proj.gym_management_system.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 @EnableJpaRepositories
@@ -30,4 +33,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                     Pageable pageable);
 
     User findByIdAndStatus(Long id, Status status);
+
+    @Query("SELECT u.id as id, u.email as email, r.name as roleName, u.password as password, u.status as status " +
+            "FROM User u JOIN u.role r WHERE u.email = :email")
+    Optional<UserLoginProjection> findUserLoginByEmail(@Param("email") String email);
+
 }

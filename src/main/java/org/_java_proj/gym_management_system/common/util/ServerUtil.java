@@ -84,13 +84,13 @@ public class ServerUtil {
 
         helper.setTo(email);
         helper.setFrom(fromMail);
-        helper.setSubject("Your FoodOrderingSystem Password Reset Code");
+        helper.setSubject("Your GymManagementSystem Password Reset Code");
 
         helper.setText(htmlContent , true);
         helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
 
 //        javaMailSender.send(message);
-        this.emailService.sendEmail(email, "Your FoodOrderingSystem Password Reset Code", htmlContent);
+        this.emailService.sendEmail(email, "Your GymManagementSystem Password Reset Code", htmlContent);
     }
 
 

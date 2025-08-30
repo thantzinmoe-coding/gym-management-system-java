@@ -32,33 +32,32 @@ public class ProfileController {
 
 
 
-    @PostMapping(
-            value = "/{userId}/create",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping(value = "/{userId}/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(
             summary = "Create a profile",
-            description = "Create a profile for the specified user with image",
+            description = "Create a profile for the specified user with JSON data",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Multipart form with JSON profile data and optional image file",
+                    description = "JSON payload for user profile",
                     required = true,
                     content = @Content(
-                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
-                            schema = @Schema(name = "data", type = "object"),
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ProfileRequestDto.class),
                             examples = @ExampleObject(
                                     name = "Example Profile",
-                                    summary = "Example multipart request",
-                                    description = "This is a sample JSON payload for the `data` part of the multipart form.",
+                                    summary = "Example JSON request",
                                     value = """
-                                               {
-                                                  "name": "Ko PU",
-                                                  "nrc": "12/ABC(N)123456",
-                                                  "phone": "09123456789",
-                                                  "dob": "1990-01-01",
-                                                  "gender": "MALE",
-                                                  "address": "No.123, Main Road, Yangon"
-                                               }
-                                             """
+                                        {
+                                          "name": "Ko PU",
+                                          "nrc": "12/ABC(N)123456",
+                                          "phone": "09123456789",
+                                          "dob": "1990-01-01",
+                                          "gender": "MALE",
+                                          "address": "No.123, Main Road, Yangon",
+                                          "weight": "70",
+                                          "height": "170",
+                                          "fitnessGoals": "Muscle Gain"
+                                        }
+                                        """
                             )
                     )
             ),
@@ -68,29 +67,7 @@ public class ProfileController {
                             description = "Profile created successfully",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = ApiResponse.class),
-                                    examples = @ExampleObject(
-                                            name = "Success Response",
-                                            value = """
-                                                    {
-                                                      "success": 1,
-                                                      "code": 200,
-                                                      "meta": {
-                                                        "endpoint": "/api/v1/auth/profile/3/update",
-                                                        "method": "POST"
-                                                      },
-                                                      "data": {
-                                                        "name": "Ko PU",
-                                                        "nrc": "12/ABC(N)123456",
-                                                        "phone": "09123456789",
-                                                        "dob": "1990-01-01",
-                                                        "gender": "MALE",
-                                                        "profilePic": "null",
-                                                        "address": "1990-01-01"
-                                                      },
-                                                      "message": "Profile created successfully"
-                                                    }"""
-                                    )
+                                    schema = @Schema(implementation = ApiResponse.class)
                             )
                     ),
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -98,43 +75,30 @@ public class ProfileController {
                             description = "Failed to create profile",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = ApiResponse.class),
-                                    examples = @ExampleObject(
-                                            name = "Error response example",
-                                            value = """
-                                                    {
-                                                      "success": 0,
-                                                      "code": 400,
-                                                      "meta": null,
-                                                      "data": null,
-                                                      "message": "Failed to create profile"
-                                                    }"""
-                                    )
+                                    schema = @Schema(implementation = ApiResponse.class)
                             )
                     )
             }
-
     )
-    public ResponseEntity<ApiResponse> createProfilePicture(
+    public ResponseEntity<ApiResponse> createProfile(
             @Parameter(description = "User ID", required = true)
             @PathVariable("userId") final Long userId,
 
-            @Valid @RequestPart("data") final ProfileRequestDto profileRequest,  // JSON part
+            @Valid @RequestBody final ProfileRequestDto profileRequest, // JSON payload
 
-            @Parameter(hidden = true)
-            @RequestPart(value = "file",required = false) final MultipartFile file,// File part
             final HttpServletRequest request
     ) {
         try {
-            final ApiResponse response = this.profileService.createProfile(userId,profileRequest,file);
+            final ApiResponse response = this.profileService.createProfile(userId, profileRequest, null);
             return ResponseUtils.buildResponse(request, response);
         } catch (Exception e) {
             return ResponseUtils.buildResponse(
                     request,
-                    ApiErrorResponse.error(HttpStatus.BAD_REQUEST.value(), "failed to create profile")
+                    ApiErrorResponse.error(HttpStatus.BAD_REQUEST.value(), "Failed to create profile")
             );
         }
     }
+
 
 
 

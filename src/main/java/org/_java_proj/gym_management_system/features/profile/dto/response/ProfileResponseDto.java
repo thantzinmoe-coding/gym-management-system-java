@@ -1,13 +1,17 @@
 package org._java_proj.gym_management_system.features.profile.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor // keep default too
 @Schema(description = "Profile response data")
 public class ProfileResponseDto {
     @Schema(description = "User's full name", example = "Ko PU")
@@ -30,4 +34,9 @@ public class ProfileResponseDto {
 
     @Schema(description = "Home address", example = "No.123, Main Road, Yangon")
     private String address;
+
+    public ProfileResponseDto(String name, String phone) {
+        this.name = name;
+        this.phone = phone;
+    }
 }
