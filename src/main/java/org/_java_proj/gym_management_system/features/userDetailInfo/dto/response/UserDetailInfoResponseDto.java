@@ -14,13 +14,13 @@ public class UserDetailInfoResponseDto {
 
     private String goal;
 
-    private Integer experience;
+    private String experience;
 
     private String specialization;
 
     private Long detailInfoId;
 
-    public UserDetailInfoResponseDto(double weight, double height, String goal, Integer experience, String specialization) {
+    public UserDetailInfoResponseDto(double weight, double height, String goal, String experience, String specialization) {
         this.weight = weight;
         this.height = height;
         this.goal = goal;

@@ -59,22 +59,21 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
     }
 
     @Override
-    public ApiResponse getUserDetailInfo(Long id) {
-        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByIdAndStatus(id, Status.ACTIVE)
-                .orElseThrow(()-> new EntityNotFoundException("User detail info did not found with id: " + id));
+    public ApiResponse getUserDetailInfoByUserId(Long userId) {
+        UserDetailInfo info = this.userDetailInfoRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("No user detail info found with user Id "+ userId));
 
-        UserDetailInfoResponseDto dto = modelMapper.map(userDetailInfo, UserDetailInfoResponseDto.class);
-        dto.setDetailInfoId(userDetailInfo.getId());
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
-                .data(Map.of("UserDetailInfo", dto))
-                .message("User detail info for user fetch successfully.")
-                .build();
+        UserDetailInfoResponseDto dto = modelMapper.map(info, UserDetailInfoResponseDto.class);
+
+        return ApiResponse.builder()
+                .success(1).code(HttpStatus.OK.value())
+                .data(dto).message("Retrieved user detail info by user id").build();
     }
 
     @Transactional
     public ApiResponse updateUserDetailInfo(Long id, UserDetailInfoCreateRequest updateRequest) {
 
-        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByIdAndStatus(id, Status.ACTIVE)
+        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findFirstByEntityIdAndStatus(id, Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("User detail info did not found with id: " + id));
 
         userDetailInfo.setId(id);

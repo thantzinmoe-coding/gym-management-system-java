@@ -10,7 +10,7 @@ public interface UserDetailInfoService {
 
     ApiResponse createUserDetailInfo(UserDetailInfoCreateRequest createRequest);
 
-    ApiResponse getUserDetailInfo(Long id);
+    ApiResponse getUserDetailInfoByUserId(Long userId);
 
     ApiResponse deleteUserDetailInfo(Long id);
 

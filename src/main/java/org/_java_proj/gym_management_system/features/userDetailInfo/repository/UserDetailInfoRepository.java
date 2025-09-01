@@ -17,7 +17,11 @@ public interface UserDetailInfoRepository extends JpaRepository<UserDetailInfo, 
 
     Optional<UserDetailInfo> findByIdAndStatus(Long id, Status status);
 
-    Optional<Object> findFirstByEntityIdAndStatus(Long entityId, Status status);
+    Optional<UserDetailInfo> findFirstByEntityIdAndStatus(Long entityId, Status status);
 
     boolean existsByEntityIdAndStatus(Long entityId, Status status);
+
+    @Query("SELECT b FROM UserDetailInfo b WHERE b.entityId = :userId")
+    Optional<UserDetailInfo> findByUserId(@Param("userId") Long userId);
+
 }

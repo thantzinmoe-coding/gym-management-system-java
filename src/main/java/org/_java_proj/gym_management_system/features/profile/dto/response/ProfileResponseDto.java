@@ -35,8 +35,4 @@ public class ProfileResponseDto {
     @Schema(description = "Home address", example = "No.123, Main Road, Yangon")
     private String address;
 
-    public ProfileResponseDto(String name, String phone) {
-        this.name = name;
-        this.phone = phone;
-    }
 }

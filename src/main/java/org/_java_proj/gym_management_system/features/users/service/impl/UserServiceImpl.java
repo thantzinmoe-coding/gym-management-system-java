@@ -181,10 +181,18 @@ public class UserServiceImpl implements UserService {
         if (!"ADMIN".equals(userData.getRoleName())) {
             ProfileProjection profile = profileRepository.findProfileSummaryByUserId(userData.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
-            profileResponse = new ProfileResponseDto(profile.getName(), profile.getPhone());
+            profileResponse = new ProfileResponseDto(
+                    profile.getName(),
+                    profile.getNrc(),
+                    profile.getPhone(),
+                    profile.getDob(),
+                    profile.getGender(),
+                    profile.getProfilePic(),
+                    profile.getAddress()
+            );
 
 
-            UserDetailInfo userDetailInfo = (UserDetailInfo) userDetailInfoRepository
+            UserDetailInfo userDetailInfo = userDetailInfoRepository
                     .findFirstByEntityIdAndStatus(userData.getId(), Status.ACTIVE)
                     .orElseThrow(() -> new EntityNotFoundException("User detail info not found for user ID: " + userData.getId()));
 
