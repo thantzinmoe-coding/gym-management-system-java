@@ -11,7 +11,7 @@ public class UserDetailInfoCreateRequest {
 
     private String goal;
 
-    private Integer experience;
+    private String experience;
 
     private String specialization;
 

@@ -3,7 +3,9 @@ package org._java_proj.gym_management_system.features.profile.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
@@ -11,6 +13,8 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Schema(description = "Profile request body")
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProfileRequestDto {
     @NotBlank(message = "Name must not be empty")
     @Schema(description = "User's full name", example = "Ko PU")

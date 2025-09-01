@@ -18,7 +18,7 @@ public class UserDetailInfo extends MasterData {
 
     private String goal;
 
-    private Integer experience;
+    private String experience;
 
     private String specialization;
 
