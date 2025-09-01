@@ -38,4 +38,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "FROM User u JOIN u.role r WHERE u.email = :email")
     Optional<UserLoginProjection> findUserLoginByEmail(@Param("email") String email);
 
+    boolean existsByEmail(String email);
 }

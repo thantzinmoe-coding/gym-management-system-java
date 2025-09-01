@@ -12,11 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.util.JWTUtil;
 import org._java_proj.gym_management_system.common.util.ServerUtil;
+import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
 import org._java_proj.gym_management_system.features.users.dto.request.AuthRequestDto;
 import org._java_proj.gym_management_system.features.users.dto.request.UploadProfilePictureRequest;
 import org._java_proj.gym_management_system.features.users.dto.request.UserCreateRequest;
+import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.features.users.service.UserService;
 import org._java_proj.gym_management_system.features.users.service.impl.UserDetailServiceImpl;
 import org.springframework.http.HttpStatus;
@@ -43,6 +45,7 @@ public class UserController {
     private final ServerUtil serverUtil;
     private final JWTUtil jwtUtil;
     private final UserDetailServiceImpl userDetailService;
+    private final UserRepository userRepo;
 
 
     @PostMapping("/login")
@@ -67,6 +70,10 @@ public class UserController {
             }
     )
     public ResponseEntity<ApiResponse> verifyUser(@RequestBody AuthRequestDto requestDto , HttpServletRequest request){
+
+        if(!userRepo.existsByEmail(requestDto.getEmail())) {
+            throw new EntityNotFoundException("Invalid email.");
+        }
         Authentication authentication = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(requestDto.getEmail(), requestDto.getPassword()));
         String token =serverUtil.generateToken((UserDetails)  authentication.getPrincipal());

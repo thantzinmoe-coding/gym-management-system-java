@@ -7,6 +7,7 @@ import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.common.storage.StorageService;
 import org._java_proj.gym_management_system.common.storage.StorageServiceFactory;
 import org._java_proj.gym_management_system.common.util.ServerUtil;
+import org._java_proj.gym_management_system.config.exceptions.EntityCreationException;
 import org._java_proj.gym_management_system.config.exceptions.UnauthorizedException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.features.profile.dto.request.ProfileProjection;
@@ -66,6 +67,10 @@ public class UserServiceImpl implements UserService {
     public ApiResponse createUser(UserCreateRequest request) {
         final Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Role not found."));
+
+        if(userRepository.existsByEmail(request.getEmail())) {
+            throw new EntityCreationException("Email already exists.");
+        }
 
         User user = new User();
         user.setEmail(request.getEmail());
