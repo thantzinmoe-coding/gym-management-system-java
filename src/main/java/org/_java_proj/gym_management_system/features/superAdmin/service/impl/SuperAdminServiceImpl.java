@@ -18,10 +18,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org._java_proj.gym_management_system.features.superAdmin.dto.request.GetAllTrainersRequest;
+import org._java_proj.gym_management_system.features.superAdmin.dto.response.TrainerResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -163,4 +166,63 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .data(Map.of("AcceptedTrainerResponse", dto))
                 .message("Trainer accepted successfully to use the gym management system.").build();
     }
+
+    @Override
+    public PaginatedApiResponse<TrainerResponseDto> getAllTrainers(GetAllTrainersRequest request, Pageable pageable) {
+        Page<Object[]> trainersPage = userRepository.findByRoleName("TRAINER", pageable);
+
+        List<TrainerResponseDto> trainerDtos = trainersPage.getContent().stream()
+                .map(result -> {
+                    TrainerResponseDto dto = new TrainerResponseDto();
+                    dto.setId((Long) result[0]);
+                    dto.setName((String) result[1]);
+                    dto.setEmail((String) result[2]);
+                    dto.setPhone((String) result[3]);
+                    dto.setStatus(result[4].toString()); // Assuming status is an enum or String
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(trainersPage.getTotalElements());
+        meta.setTotalPages(trainersPage.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<TrainerResponseDto>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Trainers fetched successfully.")
+                .meta(meta)
+                .data(trainerDtos)
+                .build();
+    }
+    @Override
+    public PaginatedApiResponse<TrainerResponseDto> getAllActiveTrainers(Pageable pageable) {
+        Page<User> trainersPage = userRepository.findByRoleAndStatus("TRAINER",Status.ACTIVE, pageable);
+
+        List<TrainerResponseDto> trainerDtos = trainersPage.getContent().stream()
+                .map(trainer -> {
+                    TrainerResponseDto dto = modelMapper.map(trainer, TrainerResponseDto.class);
+                    dto.setStatus(trainer.getStatus().toString());
+                    dto.setName(trainer.getProfile().getName());
+                    dto.setPhone(trainer.getProfile().getPhone());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(trainersPage.getTotalElements());
+        meta.setTotalPages(trainersPage.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<TrainerResponseDto>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Active trainers fetched successfully.")
+                .meta(meta)
+                .data(trainerDtos)
+                .build();
+    }
 }
+

@@ -83,6 +83,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
+        dto.setRoleName(role.getName());
         return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("currentUser", dto))
                 .message("User account created Successfully.").build();

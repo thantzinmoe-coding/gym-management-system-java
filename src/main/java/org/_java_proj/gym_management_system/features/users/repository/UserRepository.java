@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -39,4 +40,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<UserLoginProjection> findUserLoginByEmail(@Param("email") String email);
 
     boolean existsByEmail(String email);
+
+    @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.status = :status")
+    Page<User> findByRoleAndStatus(@Param("role") String role, @Param("status") Status status, Pageable pageable);
+
+    @Query("SELECT u.id, u.profile.name, u.email, u.profile.phone, u.status FROM User u WHERE u.role.name = :trainer")
+    Page<Object[]> findByRoleName(String trainer, Pageable pageable);
 }
