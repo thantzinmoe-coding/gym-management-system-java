@@ -27,10 +27,10 @@ public interface SuperAdminService {
             String keyword, Long memberId, Long packageId, MemberStatus memberStatus, Pageable pageable);
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    ApiResponse acceptTrainer(Long trainerId);
+    ApiResponse acceptTrainer(Long trainerId, String trainerStatus);
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    PaginatedApiResponse<TrainerResponseDto> getAllTrainers(GetAllTrainersRequest request, Pageable pageable);
+    PaginatedApiResponse<TrainerResponseDto> getAllTrainers(Pageable pageable);
 
     PaginatedApiResponse<TrainerResponseDto> getAllActiveTrainers(Pageable pageable);
 

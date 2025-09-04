@@ -16,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org._java_proj.gym_management_system.features.superAdmin.dto.request.GetAllTrainersRequest;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.TrainerResponseDto;
 
 @RestController
@@ -124,7 +123,7 @@ public class SuperAdminController {
         return ResponseUtils.buildPaginatedResponse(request, response);
     }
 
-    @PatchMapping("{trainerId}")
+    @PatchMapping("/accept-trainer/{trainerId}")
     @Operation(
             summary = "Admin accept the gym trainer",
             description = "Admin accept the gym trainer who is pending to use the system.",
@@ -136,14 +135,13 @@ public class SuperAdminController {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request")
             }
     )
-    public ResponseEntity<ApiResponse> acceptTrainer(@PathVariable("trainerId") Long trainerId, HttpServletRequest request) {
-        ApiResponse response = this.superAdminService.acceptTrainer(trainerId);
+    public ResponseEntity<ApiResponse> acceptTrainer(@PathVariable("trainerId") Long trainerId, @RequestBody String trainerStatus, HttpServletRequest request) {
+        ApiResponse response = this.superAdminService.acceptTrainer(trainerId, trainerStatus);
         return ResponseUtils.buildResponse(request, response);
     }
     @GetMapping("/all-trainers")
     @Operation(summary = "Get all trainers (paginated)")
     public ResponseEntity<PaginatedApiResponse<TrainerResponseDto>> getAllTrainers(
-            GetAllTrainersRequest request,
             @Parameter(description = "Page number (starts from 0)")
             @RequestParam(value = "page", defaultValue = "0") int page,
             @Parameter(description = "Page size")
@@ -151,7 +149,7 @@ public class SuperAdminController {
             HttpServletRequest servletRequest) {
 
         Pageable pageable = PageRequest.of(page, size);
-        PaginatedApiResponse<TrainerResponseDto> response = superAdminService.getAllTrainers(request, pageable);
+        PaginatedApiResponse<TrainerResponseDto> response = superAdminService.getAllTrainers(pageable);
         return ResponseUtils.buildPaginatedResponse(servletRequest, response);
     }
 

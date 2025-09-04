@@ -76,7 +76,6 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
         UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findFirstByEntityIdAndStatus(id, Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("User detail info did not found with id: " + id));
 
-        userDetailInfo.setId(id);
         userDetailInfo.setWeight(updateRequest.getWeight());
         userDetailInfo.setHeight(updateRequest.getHeight());
         userDetailInfo.setGoal(updateRequest.getGoal());

@@ -18,12 +18,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org._java_proj.gym_management_system.features.superAdmin.dto.request.GetAllTrainersRequest;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.TrainerResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -145,14 +145,16 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     }
 
     @Override
-    public ApiResponse acceptTrainer(Long trainerId) {
-        User trainer = this.userRepository.findByIdAndStatus(trainerId, Status.INACTIVE);
+    public ApiResponse acceptTrainer(Long trainerId, String trainerStatus) {
+        User trainer = this.userRepository.findById(trainerId)
+                .orElseThrow(() -> new EntityNotFoundException("No trainer not found with id "+ trainerId));
 
-        if(trainer == null) {
-            throw new EntityNotFoundException("Pending trainer not found with id "+ trainerId);
+
+        if(Objects.equals(trainerStatus, "ACTIVE")) {
+            trainer.setStatus(Status.ACTIVE);
+        } else {
+            trainer.setStatus(Status.INACTIVE);
         }
-
-        trainer.setStatus(Status.ACTIVE);
         trainer.setUpdatedAt(LocalDateTime.now());
         this.userRepository.save(trainer);
 
@@ -168,10 +170,10 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     }
 
     @Override
-    public PaginatedApiResponse<TrainerResponseDto> getAllTrainers(GetAllTrainersRequest request, Pageable pageable) {
+    public PaginatedApiResponse<TrainerResponseDto> getAllTrainers(Pageable pageable) {
         Page<Object[]> trainersPage = userRepository.findByRoleName("TRAINER", pageable);
 
-        List<TrainerResponseDto> trainerDtos = trainersPage.getContent().stream()
+        List<TrainerResponseDto> trainersDto = trainersPage.getContent().stream()
                 .map(result -> {
                     TrainerResponseDto dto = new TrainerResponseDto();
                     dto.setId((Long) result[0]);
@@ -194,14 +196,14 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .code(HttpStatus.OK.value())
                 .message("Trainers fetched successfully.")
                 .meta(meta)
-                .data(trainerDtos)
+                .data(trainersDto)
                 .build();
     }
     @Override
     public PaginatedApiResponse<TrainerResponseDto> getAllActiveTrainers(Pageable pageable) {
         Page<User> trainersPage = userRepository.findByRoleAndStatus("TRAINER",Status.ACTIVE, pageable);
 
-        List<TrainerResponseDto> trainerDtos = trainersPage.getContent().stream()
+        List<TrainerResponseDto> trainersDto = trainersPage.getContent().stream()
                 .map(trainer -> {
                     TrainerResponseDto dto = modelMapper.map(trainer, TrainerResponseDto.class);
                     dto.setStatus(trainer.getStatus().toString());
@@ -221,7 +223,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .code(HttpStatus.OK.value())
                 .message("Active trainers fetched successfully.")
                 .meta(meta)
-                .data(trainerDtos)
+                .data(trainersDto)
                 .build();
     }
 }

@@ -33,7 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                     @Param("status") Status status,
                                     Pageable pageable);
 
-    User findByIdAndStatus(Long id, Status status);
 
     @Query("SELECT u.id as id, u.email as email, r.name as roleName, u.password as password, u.status as status " +
             "FROM User u JOIN u.role r WHERE u.email = :email")
@@ -46,4 +45,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.id, u.profile.name, u.email, u.profile.phone, u.status FROM User u WHERE u.role.name = :trainer")
     Page<Object[]> findByRoleName(String trainer, Pageable pageable);
+
+
+    @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.status = :status")
+    List<User> findRole_NameAndStatus(String role, Status status);
 }
