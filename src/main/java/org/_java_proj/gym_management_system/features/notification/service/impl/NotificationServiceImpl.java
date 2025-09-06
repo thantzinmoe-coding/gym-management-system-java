@@ -62,7 +62,7 @@ public class NotificationServiceImpl implements NotificationService {
     // Convert Notification to DTO for WebSocket
     private NotificationDTO mapToDTO(Notification notification) {
         NotificationDTO dto = new NotificationDTO();
-        dto.setId(notification.getId()); // ✅ add id so frontend can mark as read
+        dto.setId(notification.getId());
         dto.setTitle(notification.getTitle());
         dto.setContent(notification.getContent());
         dto.setTime(notification.getTime().toString());

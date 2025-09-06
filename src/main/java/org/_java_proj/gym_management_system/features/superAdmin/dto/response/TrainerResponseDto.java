@@ -13,6 +13,8 @@ public class TrainerResponseDto {
     private String name;
     private String email;
     private String phone;
+    private String specialization;
+    private String avatarUrl;
     private String status;
     // Add other relevant trainer fields here (e.g., phone number, specialization)
 }

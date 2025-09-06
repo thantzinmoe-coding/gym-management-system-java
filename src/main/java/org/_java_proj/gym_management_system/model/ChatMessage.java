@@ -5,6 +5,8 @@ import lombok.*;
 import org._java_proj.gym_management_system.common.constant.MessageType;
 import org._java_proj.gym_management_system.common.entity.MasterData;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -13,34 +15,24 @@ import org._java_proj.gym_management_system.common.entity.MasterData;
 @AllArgsConstructor
 public class ChatMessage extends MasterData {
 
-    @Column(nullable = false)
     private Long senderId;
 
-    private Long recipientId; // For private messages
+    private Long recipientId; // Null for group messages
 
-    private Long studyGroupId; // For group messages
+    private Long studyGroupId; // Null for private messages
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private MessageType messageType = MessageType.TEXT;
+    private MessageType messageType;
 
     private String attachmentUrl;
 
-    @Builder.Default
-    private Boolean isRead = false;
+    private boolean isRead = false;
 
-    @Builder.Default
-    private Boolean isEdited = false;
+    private boolean isEdited = false;
 
-    // Relationships
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", insertable = false, updatable = false)
-    private User sender;
+    private LocalDateTime editedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_id", insertable = false, updatable = false)
-    private User recipient;
 }

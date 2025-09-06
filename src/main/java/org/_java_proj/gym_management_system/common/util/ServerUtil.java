@@ -7,6 +7,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.service.EmailService;
+import org._java_proj.gym_management_system.model.UserDetail;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -100,22 +101,29 @@ public class ServerUtil {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
-    public String generateToken(UserDetails userDetails){
+    public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
 
+        // ✅ Add user roles
         String roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         claims.put("role", roles);
-//        SecretKey key = Keys.hmacShaKeyFor(SecretKey.getBytes(StandardCharsets.UTF_8));
+
+        // ✅ Add userId claim
+        if (userDetails instanceof UserDetail customUserDetail) {
+            claims.put("userId", customUserDetail.getUser().getId());
+        }
+
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(userDetails.getUsername()) // this is email in your UserDetail
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+Access_Token_ExpireTime))
+                .setExpiration(new Date(System.currentTimeMillis() + Access_Token_ExpireTime))
                 .signWith(Keys.hmacShaKeyFor(SecretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();

@@ -81,6 +81,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                         .phone(user.getProfile().getPhone())
                         .address(user.getProfile().getAddress())
                         .role(user.getRole().getName()) // Add role to response
+                        .avatarUrl(user.getProfile().getProfilePic())
                         .status(user.getStatus())
                         .build()
                 ).toList();
@@ -209,6 +210,8 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                     dto.setStatus(trainer.getStatus().toString());
                     dto.setName(trainer.getProfile().getName());
                     dto.setPhone(trainer.getProfile().getPhone());
+                    dto.setSpecialization(trainer.getProfile().getGender());
+                    dto.setAvatarUrl(trainer.getProfile().getProfilePic());
                     return dto;
                 })
                 .collect(Collectors.toList());

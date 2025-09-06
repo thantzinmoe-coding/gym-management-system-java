@@ -7,7 +7,6 @@ import org._java_proj.gym_management_system.features.superAdmin.dto.response.Boo
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.SuperAdminDashBoardResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org._java_proj.gym_management_system.features.superAdmin.dto.request.GetAllTrainersRequest;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.TrainerResponseDto;
 
 public interface SuperAdminService {
@@ -15,7 +14,6 @@ public interface SuperAdminService {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ApiResponse deleteById(final Long id);
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     PaginatedApiResponse<SuperAdminDashBoardResponse> getAllUsersPaginated(
             String keyword, String role, String status, Pageable pageable);
 

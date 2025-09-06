@@ -62,4 +62,5 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Query("SELECT cm FROM ChatMessage cm WHERE cm.studyGroupId = :studyGroupId " +
             "ORDER BY cm.createdAt DESC")
     List<ChatMessage> findLastGroupMessage(@Param("studyGroupId") Long studyGroupId, Pageable pageable);
+
 }

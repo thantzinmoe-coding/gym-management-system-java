@@ -1,19 +1,16 @@
 package org._java_proj.gym_management_system.features.message.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org._java_proj.gym_management_system.common.constant.MessageType;
+import jakarta.validation.constraints.NotNull;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ChatMessageRequest {
+    @NotNull
     private String content;
-    private Long recipientId; // For private messages
-    private Long studyGroupId; // For group messages
+    @NotNull // Ensure recipientId is required for private messages
+    private Long recipientId;
+    @NotNull
     private MessageType messageType;
     private String attachmentUrl;
 }

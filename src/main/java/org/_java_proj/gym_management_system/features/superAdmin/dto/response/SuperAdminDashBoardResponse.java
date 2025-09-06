@@ -14,5 +14,6 @@ public class SuperAdminDashBoardResponse {
     private String phone;
     private String address;
     private String role;
+    private String avatarUrl;
     private Status status;
 }

@@ -40,6 +40,12 @@ public class SecurityConfig {
             "/api/v1/auth/users/verifyEmail"
     };
 
+    private static final String[] CHAT_WHITELIST = {
+            "/ws/**",
+            "/api/v1/chat/**",
+            "/api/v1/online-status/**"
+    };
+
     @Autowired
     private JWTFilter jwtAuthFilter;
 
@@ -71,7 +77,7 @@ public class SecurityConfig {
                 authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
-                        .requestMatchers("/ws/**").permitAll() // Allow public access to the WebSocket endpoint
+                        .requestMatchers(CHAT_WHITELIST).permitAll() // Allow public access to the WebSocket endpoint
                         .requestMatchers("/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )

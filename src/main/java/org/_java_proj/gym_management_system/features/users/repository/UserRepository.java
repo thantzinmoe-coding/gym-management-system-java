@@ -17,7 +17,7 @@ import java.util.Optional;
 @Repository
 @EnableJpaRepositories
 public interface UserRepository extends JpaRepository<User, Long> {
-    User findByEmail(String email);
+    Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u " +
             "LEFT JOIN u.profile p " +
@@ -46,7 +46,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.id, u.profile.name, u.email, u.profile.phone, u.status FROM User u WHERE u.role.name = :trainer")
     Page<Object[]> findByRoleName(String trainer, Pageable pageable);
 
-
-    @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.status = :status")
-    List<User> findRole_NameAndStatus(String role, Status status);
+    List<User> findByIdIn(List<Long> userIds);
 }
