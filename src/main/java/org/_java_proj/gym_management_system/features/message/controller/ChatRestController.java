@@ -17,7 +17,6 @@ import org._java_proj.gym_management_system.features.message.dto.response.ChatRo
 import org._java_proj.gym_management_system.features.message.dto.response.ChatMessageResponse;
 import org._java_proj.gym_management_system.features.message.service.ChatService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -67,23 +66,21 @@ public class ChatRestController {
                                """)
                             ))
             })
-    @GetMapping("/rooms")
-    public ResponseEntity<List<ChatRoomResponse>> getChatRooms(@AuthenticationPrincipal String userId) {
-        Long id = Long.parseLong(userId);
-        List<ChatRoomResponse> chatRooms = chatService.getChatRooms(id);
+    @GetMapping("/rooms/{userId}")
+    public ResponseEntity<List<ChatRoomResponse>> getChatRooms(@PathVariable("userId") Long userId) {
+        List<ChatRoomResponse> chatRooms = chatService.getChatRooms(userId);
         return ResponseEntity.ok(chatRooms);
     }
 
-    @GetMapping("/private/{otherUserId}")
+    @GetMapping("/private/{senderId}/{otherUserId}")
     @Operation(summary = "Get private chat messages (paginated)")
     public ResponseEntity<PaginatedApiResponse<ChatMessageResponse>> getPrivateChatHistory(
             @Parameter(description = "ID of the other user for private chat.") @PathVariable Long otherUserId,
+            @Parameter(description = "ID of the sender for private chat") @PathVariable("senderId") Long senderId,
             @Parameter(description = "Page number for pagination (default: 0).") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Number of messages per page (default: 20).") @RequestParam(defaultValue = "20") int size,
-            @AuthenticationPrincipal String userId,
             HttpServletRequest servletRequest) {
 
-        Long senderId = Long.parseLong(userId);
 
         PaginatedApiResponse<ChatMessageResponse> response =
                 chatService.getPrivateChatHistory(senderId, otherUserId, page, size);
@@ -105,16 +102,15 @@ public class ChatRestController {
                             content = @Content(mediaType = "application/json",
                                     examples = @ExampleObject(name = "Success Response", value = "{\"message\": \"Messages marked as read\"}")))
             })
-    @PostMapping("/mark-read")
+    @PostMapping("/mark-read/{userId}")
     public ResponseEntity<Map<String, String>> markMessagesAsRead(
-            @RequestBody Map<String, Long> request,
-            @AuthenticationPrincipal String userId) {
-        Long id = Long.parseLong(userId);
+            @PathVariable("userId") Long userId,
+            @RequestBody Map<String, Long> request) {
         Long senderId = request.get("senderId");
         if (senderId == null) {
             throw new IllegalArgumentException("senderId is required");
         }
-        chatService.markMessagesAsRead(id, senderId);
+        chatService.markMessagesAsRead(userId, senderId);
         return ResponseEntity.ok(Map.of("message", "Messages marked as read"));
     }
 
@@ -157,12 +153,11 @@ public class ChatRestController {
                                """)
                             ))
             })
-    @PostMapping("/send")
+    @PostMapping("/send/{id}")
     public ResponseEntity<ChatMessageResponse> sendMessage(
-            @Valid @RequestBody ChatMessageRequest request,
-            @AuthenticationPrincipal String userId) {
-        Long id = Long.parseLong(userId);
-        ChatMessageResponse response = chatService.sendPrivateMessage(id, request);
+            @PathVariable("id") Long senderId,
+            @Valid @RequestBody ChatMessageRequest request) {
+        ChatMessageResponse response = chatService.sendPrivateMessage(senderId, request);
         return ResponseEntity.ok(response);
     }
 }

@@ -36,6 +36,7 @@ public class OnlineStatusController {
                                     name = "User IDs Example",
                                     value = "[101, 102, 103]"
                             )
+
                     )
             ),
             responses = {

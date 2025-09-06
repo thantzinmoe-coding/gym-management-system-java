@@ -61,7 +61,7 @@ public class ChatServiceImpl implements ChatService {
         ChatMessageResponse response = convertToMessageResponse(savedMessage);
 
         messagingTemplate.convertAndSendToUser(
-                recipient.getEmail(),
+                String.valueOf(recipient.getId()),
                 "/queue/messages",
                 WebSocketMessage.of("NEW_MESSAGE", response)
         );
