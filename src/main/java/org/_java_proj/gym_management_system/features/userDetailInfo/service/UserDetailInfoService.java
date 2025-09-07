@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserDetailInfoService {
 
-    ApiResponse createUserDetailInfo(UserDetailInfoCreateRequest createRequest);
+    ApiResponse createUserDetailInfo(Long userId, UserDetailInfoCreateRequest createRequest);
 
     ApiResponse getUserDetailInfoByUserId(Long userId);
 

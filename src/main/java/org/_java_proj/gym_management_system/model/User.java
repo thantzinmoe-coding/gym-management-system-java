@@ -27,6 +27,10 @@ public class User extends MasterData {
     @JsonManagedReference
     private Profile profile;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
+    private UserDetailInfo userDetailInfo;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Feedback> givenFeedback = new HashSet<>();
 
@@ -37,7 +41,7 @@ public class User extends MasterData {
     private List<Attendance> attendance;
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<AssignedGymPackage> assignedSchedules = new ArrayList<>();
+    private List<AssignedGymPackage> assignedGymPackages = new ArrayList<>();
 
     @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JsonManagedReference

@@ -194,7 +194,7 @@ public class UserServiceImpl implements UserService {
 
 
             UserDetailInfo userDetailInfo = userDetailInfoRepository
-                    .findFirstByEntityIdAndStatus(userData.getId(), Status.ACTIVE)
+                    .findFirstByUserIdAndStatus(userData.getId(), Status.ACTIVE)
                     .orElseThrow(() -> new EntityNotFoundException("User detail info not found for user ID: " + userData.getId()));
 
             userDetailInfoResponseDto = new UserDetailInfoResponseDto(

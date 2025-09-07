@@ -43,8 +43,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.status = :status")
     Page<User> findByRoleAndStatus(@Param("role") String role, @Param("status") Status status, Pageable pageable);
 
-    @Query("SELECT u.id, u.profile.name, u.email, u.profile.phone, u.status FROM User u WHERE u.role.name = :trainer")
-    Page<Object[]> findByRoleName(String trainer, Pageable pageable);
+    @Query("SELECT u FROM User u WHERE u.role.name = :trainer")
+    Page<User> findByRoleName(String trainer, Pageable pageable);
 
     List<User> findByIdIn(List<Long> userIds);
+
+    @Query("""
+        SELECT DISTINCT u
+        FROM User u
+        WHERE u.role.name = 'TRAINER'
+          AND SIZE(u.assignedGymPackages) < :maxCount
+          AND u.status = :status
+    """)
+    Page<User> findAvailableTrainers(int maxCount, Status status, Pageable pageable);
 }

@@ -14,6 +14,4 @@ public class UserDetailInfoCreateRequest {
     private String experience;
 
     private String specialization;
-
-    private Long entityId;
 }

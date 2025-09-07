@@ -9,9 +9,9 @@ import lombok.Data;
 public class AssignedGymPackageRequest {
     @NotBlank(message = "Trainer id is required")
     @Schema(description = "Trainer id to assign", example = "1")
-    private Long trainerID;
+    private Long trainerId;
 
     @NotBlank(message = "Gym package id is required")
     @Schema(description = "Gym package id for assigning", example = "1")
-    private Long gymPackageID;
+    private Long gymPackageId;
 }

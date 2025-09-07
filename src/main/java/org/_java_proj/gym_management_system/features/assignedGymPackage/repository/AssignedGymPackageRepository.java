@@ -13,9 +13,9 @@ public interface AssignedGymPackageRepository extends JpaRepository<AssignedGymP
 
     AssignedGymPackage findByTrainerIdAndStatus(Long trainerID, Status status);
 
-    boolean existsByTrainerIdAndStatus(@NotBlank(message = "Trainer id is required") Long trainerID, Status status);
+    int countByTrainerIdAndStatus(Long trainerId, Status status);
 
-    boolean existsByAssignedGymPackageIdAndStatus(@NotBlank(message = "Schedule id is required") Long scheduleID, Status status);
+    boolean existsByGymPackageIdAndStatus(Long gymPackageId, Status status);
 
-    Optional<AssignedGymPackage> findByTrainerIdAndAssignedGymPackageIdAndStatus(@NotBlank(message = "Trainer id is required") Long trainerID, @NotBlank(message = "Schedule id is required") Long scheduleID, Status status);
+    Optional<AssignedGymPackage> findByTrainerIdAndGymPackageIdAndStatus(Long trainerID, Long packageId, Status status);
 }

@@ -40,7 +40,7 @@ public class AssignedGymPackageController {
         return ResponseUtils.buildResponse(request, response);
     }
 
-    @DeleteMapping("{id}")
+    @DeleteMapping("{trainerId}/{packageId}")
     @Operation(
             summary = "Trainer unassign schedule",
             description = "Unassigned a schedule by a trainer with his id",
@@ -52,8 +52,8 @@ public class AssignedGymPackageController {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Trainer ID not found")
             }
     )
-    public ResponseEntity<ApiResponse> unassignedSchedule(@PathVariable("id") Long trainerID, HttpServletRequest request) {
-        ApiResponse response = this.assignedGymPackageService.unassignedGymPackage(trainerID);
+    public ResponseEntity<ApiResponse> unassignedSchedule(@PathVariable("trainerId") Long trainerID, @PathVariable("packageId") Long packageId, HttpServletRequest request) {
+        ApiResponse response = this.assignedGymPackageService.unassignedGymPackage(trainerID, packageId);
         return ResponseUtils.buildResponse(request, response);
     }
 }

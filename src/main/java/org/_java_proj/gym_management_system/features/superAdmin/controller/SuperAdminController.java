@@ -9,6 +9,7 @@ import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
+import org._java_proj.gym_management_system.features.superAdmin.dto.response.AvailableTrainersResponse;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.SuperAdminDashBoardResponse;
 import org._java_proj.gym_management_system.features.superAdmin.service.SuperAdminService;
@@ -166,5 +167,20 @@ public class SuperAdminController {
         PaginatedApiResponse<TrainerResponseDto> response = superAdminService.getAllActiveTrainers(pageable);
         return ResponseUtils.buildPaginatedResponse(servletRequest, response);
     }
+
+    @GetMapping("/all-available-trainers")
+    @Operation(summary = "Get all available trainers (paginated)")
+    public ResponseEntity<PaginatedApiResponse<AvailableTrainersResponse>> getAllAvailableTrainers(
+            @Parameter(description = "Page number (starts from 0)")
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Page size")
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            HttpServletRequest servletRequest
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedApiResponse<AvailableTrainersResponse> response = superAdminService.getAllAvailableTrainers(pageable);
+        return ResponseUtils.buildPaginatedResponse(servletRequest, response);
+    }
+
 }
 

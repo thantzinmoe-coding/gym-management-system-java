@@ -10,9 +10,10 @@ import org._java_proj.gym_management_system.config.response.dto.PaginationMeta;
 import org._java_proj.gym_management_system.features.bookPackage.repository.BookPackageRepository;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.*;
 import org._java_proj.gym_management_system.features.superAdmin.service.SuperAdminService;
+import org._java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository;
+import org._java_proj.gym_management_system.features.users.repository.ProfileRepository;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
-import org._java_proj.gym_management_system.model.Booking;
-import org._java_proj.gym_management_system.model.User;
+import org._java_proj.gym_management_system.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +34,8 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final BookPackageRepository bookPackageRepository;
+    private final UserDetailInfoRepository userDetailInfoRepository;
+    private final ProfileRepository profileRepository;
 
 
     @Override
@@ -40,17 +44,20 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User id " + id + " is not Found"));
 
-        user.delete();
-        user.setEmail(null);
-        User updatedUser = userRepository.save(user);
+        Profile profile = this.profileRepository.findById(user.getProfile().getId()).
+                orElseThrow(() -> new EntityNotFoundException("Profile not found"));
 
-        DeletedUserResponse deletedUserResponse = modelMapper.map(updatedUser, DeletedUserResponse.class);
+        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new EntityNotFoundException("User detail info not found"));
 
-        deletedUserResponse.setDeletedAt(user.getDeletedAt().toString());
-        deletedUserResponse.setRole(user.getRole().getName());
+        this.userDetailInfoRepository.delete(userDetailInfo);
+
+        this.profileRepository.delete(profile);
+
+        this.userRepository.delete(user);
+
 
         return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
-                .data(Map.of("Deleted User",deletedUserResponse))
                 .message("User is successfully deleted").build();
     }
 
@@ -81,6 +88,11 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                         .phone(user.getProfile().getPhone())
                         .address(user.getProfile().getAddress())
                         .role(user.getRole().getName()) // Add role to response
+                        .nrc(user.getProfile().getNrc())
+                        .dob(String.valueOf(user.getProfile().getDob()))
+                        .gender(user.getProfile().getGender())
+                        .specialization(user.getUserDetailInfo().getSpecialization())
+                        .experience(user.getUserDetailInfo().getExperience())
                         .avatarUrl(user.getProfile().getProfilePic())
                         .status(user.getStatus())
                         .build()
@@ -172,17 +184,16 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     @Override
     public PaginatedApiResponse<TrainerResponseDto> getAllTrainers(Pageable pageable) {
-        Page<Object[]> trainersPage = userRepository.findByRoleName("TRAINER", pageable);
+        Page<User> trainersPage = userRepository.findByRoleName("TRAINER", pageable);
 
         List<TrainerResponseDto> trainersDto = trainersPage.getContent().stream()
-                .map(result -> {
-                    TrainerResponseDto dto = new TrainerResponseDto();
-                    dto.setId((Long) result[0]);
-                    dto.setName((String) result[1]);
-                    dto.setEmail((String) result[2]);
-                    dto.setPhone((String) result[3]);
-                    dto.setStatus(result[4].toString()); // Assuming status is an enum or String
-
+                .map(trainer -> {
+                    TrainerResponseDto dto = modelMapper.map(trainer, TrainerResponseDto.class);
+                    dto.setStatus(trainer.getStatus().toString());
+                    dto.setName(trainer.getProfile().getName());
+                    dto.setPhone(trainer.getProfile().getPhone());
+                    dto.setExperience(trainer.getUserDetailInfo().getExperience());
+                    dto.setAvatarUrl(trainer.getProfile().getProfilePic());
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -210,7 +221,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                     dto.setStatus(trainer.getStatus().toString());
                     dto.setName(trainer.getProfile().getName());
                     dto.setPhone(trainer.getProfile().getPhone());
-                    dto.setSpecialization(trainer.getProfile().getGender());
+                    dto.setSpecialization(trainer.getUserDetailInfo().getSpecialization());
                     dto.setAvatarUrl(trainer.getProfile().getProfilePic());
                     return dto;
                 })
@@ -227,6 +238,60 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .message("Active trainers fetched successfully.")
                 .meta(meta)
                 .data(trainersDto)
+                .build();
+    }
+
+    @Override
+    public PaginatedApiResponse<AvailableTrainersResponse> getAllAvailableTrainers(Pageable pageable) {
+        Page<User> trainers = userRepository.findAvailableTrainers(2, Status.ACTIVE,pageable);
+        List<AvailableTrainersResponse> availableTrainersResponses =  trainers.stream().map(user -> {
+            AvailableTrainersResponse dto = new AvailableTrainersResponse();
+            dto.setId(user.getId());
+            dto.setName(user.getProfile() != null ? user.getProfile().getName() : null);
+            dto.setEmail(user.getEmail());
+            dto.setPhone(user.getProfile() != null ? user.getProfile().getPhone() : null);
+            dto.setSpecialization(user.getUserDetailInfo() != null ? user.getUserDetailInfo().getSpecialization() : null);
+            dto.setExperience(user.getUserDetailInfo() != null ? user.getUserDetailInfo().getExperience() : null);
+            dto.setRating(user.getReceivedFeedback().size());
+
+            // ✅ Total Clients Calculation
+            Set<Long> clientIds = user.getAssignedGymPackages().stream()
+                    .flatMap(agp -> agp.getGymPackage().getBooking().stream())
+                    .map(Booking::getUser)
+                    .map(User::getId)
+                    .collect(Collectors.toSet());
+
+            dto.setTotalClients(clientIds.size());
+
+            dto.setStatus(user.getStatus());
+            dto.setPackages(user.getAssignedGymPackages().stream()
+                    .map(AssignedGymPackage::getGymPackage)
+                    .map(pkg -> {
+                        GymPackageResponse gpDto = new GymPackageResponse();
+                        gpDto.setId(pkg.getId());
+                        gpDto.setName(pkg.getName());
+                        gpDto.setPrice(pkg.getPrice());
+                        gpDto.setType(pkg.getGymPackageType().name());
+                        gpDto.setDescription(pkg.getDescription());
+                        return gpDto;
+                    })
+                    .collect(Collectors.toList()));
+
+
+            return dto;
+        }).collect(Collectors.toList());
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(trainers.getTotalElements());
+        meta.setTotalPages(trainers.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<AvailableTrainersResponse>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Active trainers fetched successfully.")
+                .meta(meta)
+                .data(availableTrainersResponses)
                 .build();
     }
 }
