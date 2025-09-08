@@ -9,5 +9,5 @@ public interface AssignedGymPackageService {
     ApiResponse assignedGymPackage(AssignedGymPackageRequest request);
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    ApiResponse unassignedGymPackage(Long trainerID);
+    ApiResponse unassignedGymPackage(Long trainerID, Long packageId);
 }

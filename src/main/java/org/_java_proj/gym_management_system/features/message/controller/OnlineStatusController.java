@@ -36,6 +36,7 @@ public class OnlineStatusController {
                                     name = "User IDs Example",
                                     value = "[101, 102, 103]"
                             )
+
                     )
             ),
             responses = {
@@ -88,5 +89,7 @@ public class OnlineStatusController {
         boolean isOnline = onlineUserService.isUserOnline(userId);
         return ResponseEntity.ok(Map.of("online", isOnline));
     }
+
+
 }
 

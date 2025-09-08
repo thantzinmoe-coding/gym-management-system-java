@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserDetailInfoController {
 
     private final UserDetailInfoService userDetailInfoService;
-    @PostMapping
+    @PostMapping("/{userId}")
     @Operation(
             summary = "Create a new user detail info",
             description = "Registers a new user detail info in the system.",
@@ -41,10 +41,11 @@ public class UserDetailInfoController {
             }
     )
     public ResponseEntity<ApiResponse> createUserDetailInfo(
+            @PathVariable("userId") Long userId,
             @Valid @RequestBody final UserDetailInfoCreateRequest userDetailInfoCreateRequest,
             final HttpServletRequest request
     ){
-        final ApiResponse response = this.userDetailInfoService.createUserDetailInfo(userDetailInfoCreateRequest);
+        final ApiResponse response = this.userDetailInfoService.createUserDetailInfo(userId, userDetailInfoCreateRequest);
         return ResponseUtils.buildResponse(request,response);
     }
 

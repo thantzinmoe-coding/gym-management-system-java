@@ -13,14 +13,14 @@ import lombok.With;
 @Schema(description = "Notification request payload")
 public class NotificationDTO {
 
+    @Schema(hidden = true)
+    private Long id;
+
     @Schema(description = "Title of the notification", example = "System Update")
     private String title;
 
     @Schema(description = "Content of the notification", example = "Server will restart at midnight.")
     private String content;
-
-    @Schema(description = "Recipient user ID (omit for broadcast)", nullable = true, example = "5")
-    private Long recipientId;
 
     @Schema(hidden = true) // don’t show in Swagger because backend sets it
     private Long senderId;

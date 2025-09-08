@@ -14,7 +14,6 @@ import org._java_proj.gym_management_system.features.users.repository.UserReposi
 import org._java_proj.gym_management_system.model.AssignedGymPackage;
 import org._java_proj.gym_management_system.model.GymPackage;
 import org._java_proj.gym_management_system.model.User;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,40 +26,46 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
     private final AssignedGymPackageRepository assignedGymPackageRepository;
     private final UserRepository userRepository;
     private final GymPackageRepository gymPackageRepository;
-    private final ModelMapper modelMapper;
 
     @Override
     public ApiResponse assignedGymPackage(AssignedGymPackageRequest request) {
         // Validate trainer exists and is not a MEMBER
-        User trainer = this.userRepository.findById(request.getTrainerID())
-                .orElseThrow(() -> new EntityNotFoundException("Trainer not found with id " + request.getTrainerID()));
+        User trainer = this.userRepository.findById(request.getTrainerId())
+                .orElseThrow(() -> new EntityNotFoundException("Trainer not found with id " + request.getTrainerId()));
         if (trainer.getRole() != null && "MEMBER".equals(trainer.getRole().getName()) || "ADMIN".equals(Objects.requireNonNull(trainer.getRole()).getName())) {
             throw new EntityCreationException("Member cannot assign to package.");
         }
 
-        GymPackage gymPackage = this.gymPackageRepository.findById(request.getGymPackageID())
-                .orElseThrow(() -> new EntityNotFoundException("Gym package not found to assign with is "+ request.getGymPackageID()));
+        GymPackage gymPackage = this.gymPackageRepository.findById(request.getGymPackageId())
+                .orElseThrow(() -> new EntityNotFoundException("Gym package not found to assign with is "+ request.getGymPackageId()));
 
-        this.gymPackageRepository.findByIdAndStatus(request.getGymPackageID(), Status.ACTIVE)
-                .orElseThrow(() -> new EntityCreationException("This package is not active to assign"));
+        this.gymPackageRepository.findByIdAndStatus(request.getGymPackageId(), Status.INACTIVE)
+                .orElseThrow(() -> new EntityCreationException("This package is active. Can't assign."));
 
         // Check if trainer already has an ACTIVE assignment
-        if (assignedGymPackageRepository.existsByTrainerIdAndStatus(request.getTrainerID(), Status.ACTIVE)) {
-            throw new EntityCreationException("Trainer " + request.getTrainerID() + " is already assigned to an active gym package.");
+        int activeAssignments = assignedGymPackageRepository.countByTrainerIdAndStatus(request.getTrainerId(), Status.ACTIVE);
+
+        if (activeAssignments >= 2) {
+            throw new EntityCreationException("Trainer " + request.getTrainerId() + " is already assigned to 2 active gym packages.");
         }
 
         // Check if schedule already has an ACTIVE assignment (to any trainer)
-        if (assignedGymPackageRepository.existsByAssignedGymPackageIdAndStatus(request.getGymPackageID(), Status.ACTIVE)) {
-            throw new EntityCreationException("Gym package " + request.getGymPackageID() + " is already assigned to an active trainer.");
+        if (assignedGymPackageRepository.existsByGymPackageIdAndStatus(request.getGymPackageId(), Status.ACTIVE)) {
+            throw new EntityCreationException("Gym package " + request.getGymPackageId() + " is already assigned to an active trainer.");
         }
 
         AssignedGymPackage assignedGymPackage = new AssignedGymPackage();
         assignedGymPackage.setTrainer(trainer);
-        assignedGymPackage.setAssignedGymPackage(gymPackage);
+        assignedGymPackage.setStatus(Status.INACTIVE);
+        assignedGymPackage.setGymPackage(gymPackage);
 
         assignedGymPackageRepository.save(assignedGymPackage);
 
-        AssignedGymPackageResponseDto dto = modelMapper.map(assignedGymPackage, AssignedGymPackageResponseDto.class);
+        AssignedGymPackageResponseDto dto = new AssignedGymPackageResponseDto();
+        dto.setId(assignedGymPackage.getId());
+        dto.setTrainerId(trainer.getId());
+        dto.setTrainerName(trainer.getProfile().getName());
+        dto.setGymPackageId(gymPackage.getId());
 
         return ApiResponse.builder()
                 .success(1)
@@ -71,14 +76,11 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
     }
 
     @Override
-    public ApiResponse unassignedGymPackage(Long trainerID) {
+    public ApiResponse unassignedGymPackage(Long trainerID, Long packageId) {
         // Find ACTIVE assignment for this trainer
         AssignedGymPackage assignedGymPackage = this.assignedGymPackageRepository
-                .findByTrainerIdAndStatus(trainerID, Status.ACTIVE);
-
-        if(assignedGymPackage == null){
-            throw new EntityNotFoundException("Trainer not assigned to any active schedule with id " + trainerID);
-        }
+                .findByTrainerIdAndGymPackageIdAndStatus(trainerID, packageId, Status.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("Assigned gym package not found with trainer id "+trainerID+ " and gym package id"+ packageId));
 
         this.assignedGymPackageRepository.delete(assignedGymPackage);
 

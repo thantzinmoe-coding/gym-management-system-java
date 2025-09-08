@@ -12,11 +12,12 @@ import java.util.List;
 public class UserDetail implements UserDetails {
     private final User user;
 
-
     public UserDetail(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
         this.user = user;
     }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -32,5 +33,4 @@ public class UserDetail implements UserDetails {
     public String getUsername() {
         return user.getEmail();
     }
-
 }

@@ -40,58 +40,35 @@ public class NotificationServiceImpl implements NotificationService {
 
         Notification savedNotification = notificationRepository.save(notification);
 
-        if (notificationDTO.getRecipientId() != null) {
-            // Personal
-            User recipient = userRepository.findById(notificationDTO.getRecipientId()).orElse(null);
-            notification.setRecipient(recipient);
-            notificationRepository.save(notification);
-
-            // Create read-tracking
+        List<User> allUsers = userRepository.findAll();
+        for (User user : allUsers) {
             UserNotificationStatus status = new UserNotificationStatus();
-            status.setUser(recipient);
+            status.setUser(user);
             status.setNotification(savedNotification);
             status.setIsRead(false);
             userNotificationStatusRepository.save(status);
-
-            assert recipient != null;
-            messagingTemplate.convertAndSendToUser(
-                    recipient.getProfile().getName(),
-                    "/queue/notifications",
-                    mapToDTO(savedNotification)
-            );
-        } else {
-            // Broadcast
-            List<User> allUsers = userRepository.findAll();
-
-            for (User user : allUsers) {
-                UserNotificationStatus status = new UserNotificationStatus();
-                status.setUser(user);
-                status.setNotification(savedNotification);
-                status.setIsRead(false);
-                userNotificationStatusRepository.save(status);
-            }
-
-            messagingTemplate.convertAndSend("/topic/notifications", mapToDTO(savedNotification));
         }
+
+        messagingTemplate.convertAndSend("/topic/notifications", mapToDTO(savedNotification));
 
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
                 .data(Map.of("Notification", mapToDTO(savedNotification)))
-                .message(notificationDTO.getRecipientId() == null ? "Broadcast sent" : "Sent to user")
+                .message("Broadcast sent to all users")
                 .build();
     }
 
     // Convert Notification to DTO for WebSocket
     private NotificationDTO mapToDTO(Notification notification) {
         NotificationDTO dto = new NotificationDTO();
+        dto.setId(notification.getId());
         dto.setTitle(notification.getTitle());
         dto.setContent(notification.getContent());
         dto.setTime(notification.getTime().toString());
         dto.setSenderId(notification.getSender().getId());
         return dto;
     }
-
 
     @Override
     public List<Notification> getNotificationsForUser(Long userId) {
@@ -117,4 +94,22 @@ public class NotificationServiceImpl implements NotificationService {
         return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
                 .message("User have read the notification").build();
     }
+
+    @Override
+    public ApiResponse markAllAsRead(Long userId) {
+        List<UserNotificationStatus> statuses = userNotificationStatusRepository.findAllByUserId(userId);
+
+        for (UserNotificationStatus status : statuses) {
+            status.setIsRead(true);
+        }
+
+        userNotificationStatusRepository.saveAll(statuses);
+
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("All notifications marked as read for user")
+                .build();
+    }
+
 }

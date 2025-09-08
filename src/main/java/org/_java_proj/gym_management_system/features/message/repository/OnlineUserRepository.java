@@ -22,4 +22,6 @@ public interface OnlineUserRepository extends JpaRepository<OnlineUser, Long> {
     @Modifying
     @Query("UPDATE OnlineUser ou SET ou.isActive = false WHERE ou.lastSeen < :cutoffTime")
     void deactivateStaleUsers(LocalDateTime cutoff);
+
+    Optional<OnlineUser> findBySessionId(String sessionId);
 }

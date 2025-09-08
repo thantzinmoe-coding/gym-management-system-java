@@ -41,6 +41,12 @@ public class SecurityConfig {
             "/api/v1/feedback/**"
     };
 
+    private static final String[] CHAT_WHITELIST = {
+            "/ws/**",
+            "/api/v1/chat/**",
+            "/api/v1/online-status/**"
+    };
+
     @Autowired
     private JWTFilter jwtAuthFilter;
 
@@ -72,11 +78,7 @@ public class SecurityConfig {
                 authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
-                        .requestMatchers("/api/v1/gym-package/**").permitAll()
-                        .requestMatchers("/api/v1/schedule/**").permitAll()
-                        .requestMatchers("/api/v1/equipment/**").permitAll()
-                        .requestMatchers("/api/notifications/**").permitAll()
-                        .requestMatchers("/ws/**").permitAll() // Allow public access to the WebSocket endpoint
+                        .requestMatchers(CHAT_WHITELIST).permitAll() // Allow public access to the WebSocket endpoint
                         .requestMatchers("/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )

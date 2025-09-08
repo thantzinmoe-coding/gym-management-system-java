@@ -66,7 +66,6 @@ public class OnlineUserServiceImpl implements OnlineUserService {
                 .toList();
     }
 
-    // Clean up stale online user records every 5 minutes
     @Scheduled(fixedRate = 300000)
     @Transactional
     public void cleanupStaleUsers() {
@@ -74,4 +73,10 @@ public class OnlineUserServiceImpl implements OnlineUserService {
         onlineUserRepository.deactivateStaleUsers(cutoff);
         log.debug("Cleaned up stale online user records");
     }
+
+    @Override
+    public Optional<OnlineUser> getOnlineUserBySessionId(String sessionId) {
+        return onlineUserRepository.findBySessionId(sessionId);
+    }
+
 }

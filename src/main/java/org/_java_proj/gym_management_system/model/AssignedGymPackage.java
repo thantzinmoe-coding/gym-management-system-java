@@ -15,9 +15,9 @@ public class AssignedGymPackage extends MasterData {
     @JoinColumn(name = "trainer_id")
     private User trainer;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "assignedGymPackage_id")
-    private GymPackage assignedGymPackage;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gym_package_id", unique = true) // enforce uniqueness at DB level
+    private GymPackage gymPackage;
 
     public AssignedGymPackage(){}
 

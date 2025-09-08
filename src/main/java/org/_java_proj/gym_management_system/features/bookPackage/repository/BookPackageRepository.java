@@ -81,7 +81,7 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT COUNT(DISTINCT b.user.id) " +
             "FROM Booking b " +
-            "JOIN AssignedGymPackage agp ON agp.assignedGymPackage.id = b.gymPackage.id " +
+            "JOIN AssignedGymPackage agp ON agp.gymPackage.id = b.gymPackage.id " +
             "WHERE agp.trainer.id = :trainerId")
     Long countDistinctUsersByTrainer(@Param("trainerId") Long trainerId);
 

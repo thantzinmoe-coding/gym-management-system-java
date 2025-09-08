@@ -6,7 +6,9 @@ import lombok.Data;
 public class AssignedGymPackageResponseDto {
     private Long id;
 
-    private Long trainerID;
+    private Long trainerId;
 
-    private Long scheduleID;
+    private String trainerName;
+
+    private Long gymPackageId;
 }
