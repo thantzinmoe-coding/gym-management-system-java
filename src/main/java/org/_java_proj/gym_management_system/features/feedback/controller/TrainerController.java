@@ -44,3 +44,4 @@ public class TrainerController {
         return "trainers/trainer_ratings"; // Thymeleaf template
     }
 }
+

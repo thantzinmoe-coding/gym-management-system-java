@@ -111,6 +111,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         if (request.getTimeOut() != null && attendance.getTimeOut() == null) {
             attendance.setTimeOut(request.getTimeOut());
+            attendance.setHoursWorked(request.getHoursWorked());
             Attendance updatedAttendance = attendanceRepository.save(attendance);
             AttendanceResponseDto dto = mapToDto(updatedAttendance);
 

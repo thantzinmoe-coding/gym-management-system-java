@@ -29,9 +29,11 @@ public interface SuperAdminService {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ApiResponse acceptTrainer(Long trainerId);
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     PaginatedApiResponse<TrainerResponseDto> getAllTrainers(GetAllTrainersRequest request, Pageable pageable);
 
     PaginatedApiResponse<TrainerResponseDto> getAllActiveTrainers(Pageable pageable);
 
+    // New method to get booked users
+
+    PaginatedApiResponse<SuperAdminDashBoardResponse> getBookedUsers(Pageable pageable);
 }

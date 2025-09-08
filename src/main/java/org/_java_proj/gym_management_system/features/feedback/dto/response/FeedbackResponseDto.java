@@ -13,6 +13,7 @@ public class FeedbackResponseDto {
 
     private Long memberId;
     private Long trainerId;
+    private String trainerName;
     private String comment;
     private int ratingPoints;
     private LocalDate date;

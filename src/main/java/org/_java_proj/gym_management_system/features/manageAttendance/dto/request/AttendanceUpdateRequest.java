@@ -9,4 +9,5 @@ public class AttendanceUpdateRequest {
 
     @Schema(description = "Attendance time out", example = "5PM")
     private String timeOut;
+    private Double hoursWorked;
 }

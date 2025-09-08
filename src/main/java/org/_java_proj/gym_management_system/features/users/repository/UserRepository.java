@@ -46,4 +46,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.id, u.profile.name, u.email, u.profile.phone, u.status FROM User u WHERE u.role.name = :trainer")
     Page<Object[]> findByRoleName(String trainer, Pageable pageable);
+
+    @Query("SELECT DISTINCT u FROM User u JOIN u.assignedSchedules a")
+    Page<User> findBookedUsers(Pageable pageable);
 }
