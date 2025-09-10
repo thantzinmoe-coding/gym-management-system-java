@@ -17,25 +17,20 @@ public class Attendance extends MasterData {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(name = "time_in", nullable = false)
-    private LocalDateTime timeIn;
+    @Column(nullable = false)
+    private String timeIn;
 
-    @Column(name = "time_out")
-    private LocalDateTime timeOut;
+    private String timeOut;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "attendance_type", nullable = false)
-    private AttendanceType attendanceType;
-
     // For trainers
-    @Column(name = "hours_worked")
     private Double hoursWorked;
 
     // For users
-    @Column(name = "package_days")
     private Integer packageDays;
+
+    public Attendance(){}
 }

@@ -3,7 +3,6 @@ package org._java_proj.gym_management_system.features.userDetailInfo.service.imp
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.constant.Status;
-import org._java_proj.gym_management_system.config.exceptions.EntityCreationException;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
@@ -12,6 +11,8 @@ import org._java_proj.gym_management_system.features.userDetailInfo.dto.request.
 import org._java_proj.gym_management_system.features.userDetailInfo.dto.response.UserDetailInfoResponseDto;
 import org._java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository;
 import org._java_proj.gym_management_system.features.userDetailInfo.service.UserDetailInfoService;
+import org._java_proj.gym_management_system.features.users.repository.UserRepository;
+import org._java_proj.gym_management_system.model.User;
 import org._java_proj.gym_management_system.model.UserDetailInfo;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -28,16 +29,22 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
 
 
     private final UserDetailInfoRepository userDetailInfoRepository;
+    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
     @Transactional
-    public ApiResponse createUserDetailInfo(UserDetailInfoCreateRequest createRequest) {
+    public ApiResponse createUserDetailInfo(Long userId,UserDetailInfoCreateRequest createRequest) {
 
-        if(this.userDetailInfoRepository.existsByEntityIdAndStatus(createRequest.getEntityId(), Status.ACTIVE)) {
-            throw new EntityCreationException("User detail info already exists by entity id " + createRequest.getEntityId());
-        }
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id "+userId));
 
-        UserDetailInfo userDetailInfo = getUserDetailInfo(createRequest);
+        UserDetailInfo userDetailInfo = new UserDetailInfo();
+        userDetailInfo.setWeight(createRequest.getWeight());
+        userDetailInfo.setHeight(createRequest.getHeight());
+        userDetailInfo.setGoal(createRequest.getGoal());
+        userDetailInfo.setExperience(createRequest.getExperience());
+        userDetailInfo.setSpecialization(createRequest.getSpecialization());
+        userDetailInfo.setUser(user);
 
         userDetailInfoRepository.save(userDetailInfo);
 
@@ -47,41 +54,26 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
                 .message("User detail info created successfully").build();
     }
 
-    private static UserDetailInfo getUserDetailInfo(UserDetailInfoCreateRequest createRequest) {
-        UserDetailInfo userDetailInfo = new UserDetailInfo();
-        userDetailInfo.setWeight(createRequest.getWeight());
-        userDetailInfo.setHeight(createRequest.getHeight());
-        userDetailInfo.setHealthInfo(createRequest.getHealthInfo());
-        userDetailInfo.setGoal(createRequest.getGoal());
-        userDetailInfo.setExperience(createRequest.getExperience());
-        userDetailInfo.setSpecialization(createRequest.getSpecialization());
-        userDetailInfo.setEntityId(createRequest.getEntityId());
-        return userDetailInfo;
-    }
-
     @Override
-    public ApiResponse getUserDetailInfo(Long id) {
-        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByIdAndStatus(id, Status.ACTIVE)
-                .orElseThrow(()-> new EntityNotFoundException("User detail info did not found with id: " + id));
+    public ApiResponse getUserDetailInfoByUserId(Long userId) {
+        UserDetailInfo info = this.userDetailInfoRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("No user detail info found with user Id "+ userId));
 
-        UserDetailInfoResponseDto dto = modelMapper.map(userDetailInfo, UserDetailInfoResponseDto.class);
-        dto.setDetailInfoId(userDetailInfo.getId());
-        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
-                .data(Map.of("UserDetailInfo", dto))
-                .message("User detail info for user fetch successfully.")
-                .build();
+        UserDetailInfoResponseDto dto = modelMapper.map(info, UserDetailInfoResponseDto.class);
+
+        return ApiResponse.builder()
+                .success(1).code(HttpStatus.OK.value())
+                .data(dto).message("Retrieved user detail info by user id").build();
     }
 
     @Transactional
     public ApiResponse updateUserDetailInfo(Long id, UserDetailInfoCreateRequest updateRequest) {
 
-        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByIdAndStatus(id, Status.ACTIVE)
+        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findFirstByUserIdAndStatus(id, Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("User detail info did not found with id: " + id));
 
-        userDetailInfo.setId(id);
         userDetailInfo.setWeight(updateRequest.getWeight());
         userDetailInfo.setHeight(updateRequest.getHeight());
-        userDetailInfo.setHealthInfo(updateRequest.getHealthInfo());
         userDetailInfo.setGoal(updateRequest.getGoal());
         userDetailInfo.setExperience(updateRequest.getExperience());
         userDetailInfo.setSpecialization(updateRequest.getSpecialization());
@@ -101,10 +93,9 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
     public ApiResponse deleteUserDetailInfo(Long id) {
         UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByIdAndStatus(id, Status.ACTIVE)
                 .orElseThrow(()-> new EntityNotFoundException("User detail info did not found with id: " + id));
-        userDetailInfo.delete();
-        this.userDetailInfoRepository.save(userDetailInfo);
+
+        this.userDetailInfoRepository.delete(userDetailInfo);
         return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
-                .data(userDetailInfo)
                 .message("User detail info deleted successfully with id: "+id)
                 .build();
     }

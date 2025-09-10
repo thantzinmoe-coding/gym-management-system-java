@@ -1,5 +1,6 @@
 package org._java_proj.gym_management_system.features.managePackage.service;
 
+import org._java_proj.gym_management_system.common.constant.GymPackageType;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.features.managePackage.dto.request.GymPackageCreateRequest;
@@ -17,5 +18,7 @@ public interface GymPackageService {
     ApiResponse updateGymPackage(Long id, GymPackageUpdateRequest request);
 
     ApiResponse deleteGymPackage(Long id);
+
+    PaginatedApiResponse<GymPackageResponseDto> getGymPackagesByType(GymPackageType type, Pageable pageable);
 
 }

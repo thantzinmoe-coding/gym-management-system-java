@@ -41,13 +41,13 @@ public class ManageAttendanceController {
         return ResponseUtils.buildResponse(servletRequest, response);
     }
 
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Get all attendance records for a specific user")
+    @GetMapping("/trainer/{trainerId}")
+    @Operation(summary = "Get all attendance records for a specific trainer")
     public ResponseEntity<ApiResponse> getAttendancesByUser(
-            @PathVariable Long userId,
+            @PathVariable Long trainerId,
             HttpServletRequest servletRequest
     ) {
-        ApiResponse response = attendanceService.getAttendancesByUser(userId);
+        ApiResponse response = attendanceService.getAttendancesByUser(trainerId);
         return ResponseUtils.buildResponse(servletRequest, response);
     }
 
@@ -78,4 +78,15 @@ public class ManageAttendanceController {
         ApiResponse response = attendanceService.deleteAttendance(id);
         return ResponseUtils.buildResponse(servletRequest, response);
     }
+
+    @GetMapping("/trainer/{trainerId}/total-hours")
+    @Operation(summary = "Get total hours worked by a specific trainer")
+    public ResponseEntity<ApiResponse> getTotalHoursWorkedByUser(
+            @PathVariable Long trainerId,
+            HttpServletRequest servletRequest
+    ) {
+        ApiResponse response = attendanceService.getTotalHoursWorkedByUser(trainerId);
+        return ResponseUtils.buildResponse(servletRequest, response);
+    }
+
 }

@@ -7,13 +7,18 @@ import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.common.storage.StorageService;
 import org._java_proj.gym_management_system.common.storage.StorageServiceFactory;
 import org._java_proj.gym_management_system.common.util.ServerUtil;
+import org._java_proj.gym_management_system.config.exceptions.EntityCreationException;
 import org._java_proj.gym_management_system.config.exceptions.UnauthorizedException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
+import org._java_proj.gym_management_system.features.profile.dto.request.ProfileProjection;
 import org._java_proj.gym_management_system.features.userDetailInfo.dto.response.UserDetailInfoResponseDto;
 import org._java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository;
 import org._java_proj.gym_management_system.features.profile.dto.response.ProfileResponseDto;
 import org._java_proj.gym_management_system.features.users.dto.request.AuthRequestDto;
 import org._java_proj.gym_management_system.features.users.dto.request.UserCreateRequest;
+import org._java_proj.gym_management_system.features.users.dto.request.UserLoginProjection;
+import org._java_proj.gym_management_system.features.users.dto.request.UserTokenProjection;
+import org._java_proj.gym_management_system.features.users.dto.response.LoginResponseDto;
 import org._java_proj.gym_management_system.features.users.dto.response.UserResponseDto;
 import org._java_proj.gym_management_system.features.users.repository.ProfileRepository;
 import org._java_proj.gym_management_system.features.users.repository.RoleRepository;
@@ -63,17 +68,22 @@ public class UserServiceImpl implements UserService {
         final Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Role not found."));
 
+        if(userRepository.existsByEmail(request.getEmail())) {
+            throw new EntityCreationException("Email already exists.");
+        }
+
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
         if(Objects.equals(role.getName(), "TRAINER")) {
-            user.setStatus(Status.INACTIVE);
+            user.setStatus(Status.PENDING);
         }
 
         userRepository.save(user);
 
         UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
+        dto.setRoleName(role.getName());
         return ApiResponse.builder().success(1).code(HttpStatus.CREATED.value())
                 .data(Map.of("currentUser", dto))
                 .message("User account created Successfully.").build();
@@ -136,72 +146,86 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
     @Override
     public ApiResponse getUserAuthData(AuthRequestDto requestDto, String token, String refreshToken) {
         boolean saveRefreshToken = true;
-        User userData = userRepository.findByEmail(requestDto.getEmail());
 
-        if(userData == null) {
-            throw new org._java_proj.gym_management_system
-                    .config.exceptions
-                    .EntityNotFoundException("User not found with email "+ requestDto.getEmail());
-        }
+        UserLoginProjection userData = userRepository.findUserLoginByEmail(requestDto.getEmail())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email " + requestDto.getEmail()));
 
-        if(Objects.equals(userData.getRole().getName(), "TRAINER") && Objects.equals(userData.getStatus().toString(), "INACTIVE")) {
+        if ("TRAINER".equals(userData.getRoleName()) && "PENDING".equals(userData.getStatus())) {
             throw new UnauthorizedException("You can't login. Please wait for system Admin Approval.");
         }
 
-        Profile profile = new Profile();
-        UserDetailInfo userDetailInfo =  new UserDetailInfo();
-        if(!Objects.equals(userData.getRole().getName(), "ADMIN")) {
-            profile = profileRepository.findByUser_Id(userData.getId()).orElseThrow(() ->
-                    new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
-            userDetailInfo = (UserDetailInfo) this.userDetailInfoRepository.findFirstByEntityIdAndStatus(userData.getId(), Status.ACTIVE)
-                    .orElseThrow(() ->
-                            new EntityNotFoundException("User detail info not found for user ID: " + userData.getId()));
+        // Handle refresh token reuse
+        UserTokenProjection tokenData = userTokenRepository.findLatestTokenByUsername(userData.getEmail())
+                .orElse(null);
 
-        }
-
-        long roleId = userData.getRole().getId();
-        String roleName = userData.getRole().getName();
-        UserToken tokenData = userTokenRepository.findTopByUsernameOrderByCreatedAtDesc(requestDto.getEmail());
-        if(tokenData != null){
-            LocalDateTime createdAt = tokenData.getCreatedAt();
-            long hoursBetween = ChronoUnit.HOURS.between(createdAt, LocalDateTime.now());
+        if (tokenData != null) {
+            long hoursBetween = ChronoUnit.HOURS.between(tokenData.getCreatedAt(), LocalDateTime.now());
             if (hoursBetween < 12) {
-                saveRefreshToken = false; // Only save if more than 12 hours have passed
-                refreshToken = tokenData.getToken(); // Use existing Token in db instead of creating new one.
+                saveRefreshToken = false;
+                refreshToken = tokenData.getToken();
             }
         }
 
-        if(saveRefreshToken){
+        if (saveRefreshToken) {
             UserToken userToken = new UserToken();
-            userToken.setUsername(requestDto.getEmail());
-            userToken.setToken(refreshToken); // Refresh Token
+            userToken.setUsername(userData.getEmail());
+            userToken.setToken(refreshToken);
             userTokenRepository.save(userToken);
         }
-        ProfileResponseDto profileResponse = modelMapper.map(profile, ProfileResponseDto.class);
-        UserDetailInfoResponseDto userDetailInfoResponseDto = modelMapper.map(userDetailInfo, UserDetailInfoResponseDto.class);
 
-        Map<String, Object> data = Map.of(
-                "token", token,
-                "RefreshToken", refreshToken,
-                "userId", userData.getId(),
-                "roleId", roleId,
-                "email", userData.getEmail(),
-                "roleName", roleName,
-                "profile",profileResponse,
-                "userDetailInfo", userDetailInfoResponseDto
+        // Fetch profile summary only if not ADMIN
+        ProfileResponseDto profileResponse = null;
+        UserDetailInfoResponseDto userDetailInfoResponseDto = null;
+        if (!"ADMIN".equals(userData.getRoleName())) {
+            ProfileProjection profile = profileRepository.findProfileSummaryByUserId(userData.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
+            profileResponse = new ProfileResponseDto(
+                    profile.getName(),
+                    profile.getNrc(),
+                    profile.getPhone(),
+                    profile.getDob(),
+                    profile.getGender(),
+                    profile.getProfilePic(),
+                    profile.getAddress()
+            );
+
+
+            UserDetailInfo userDetailInfo = userDetailInfoRepository
+                    .findFirstByUserIdAndStatus(userData.getId(), Status.ACTIVE)
+                    .orElseThrow(() -> new EntityNotFoundException("User detail info not found for user ID: " + userData.getId()));
+
+            userDetailInfoResponseDto = new UserDetailInfoResponseDto(
+                    userDetailInfo.getWeight(),
+                    userDetailInfo.getHeight(),
+                    userDetailInfo.getGoal(),
+                    userDetailInfo.getExperience(),
+                    userDetailInfo.getSpecialization()
+            );
+
+        }
+
+        // Build login DTO
+        LoginResponseDto loginResponse = new LoginResponseDto(
+                userData.getId(),
+                userData.getEmail(),
+                userData.getRoleName(),
+                token,
+                refreshToken,
+                profileResponse,
+                userDetailInfoResponseDto
         );
+
         return ApiResponse.builder()
                 .success(1)
                 .code(200)
-                .meta(null)
-                .data(data)
+                .data(loginResponse)
                 .message("Account Login successfully.")
                 .build();
     }
+
 
 
 

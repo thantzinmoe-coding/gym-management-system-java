@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.features.notification.dto.UserNotificationDTO;
 import org._java_proj.gym_management_system.features.notification.repository.UserNotificationStatusRepository;
 import org._java_proj.gym_management_system.features.notification.service.NotificationQueryService;
-import org._java_proj.gym_management_system.model.UserNotificationStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,17 +16,15 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
 
     @Override
     public List<UserNotificationDTO> getNotificationsForUser(Long userId) {
-        List<UserNotificationStatus> statuses = userNotificationStatusRepository.findAllByUserIdOrderByNotificationTimeDesc(userId);
+        List<UserNotificationDTO> statuses = userNotificationStatusRepository.findUserNotifications(userId);
 
         return statuses.stream().map(uns -> {
             UserNotificationDTO dto = new UserNotificationDTO();
-            dto.setId(uns.getNotification().getId());
-            dto.setTitle(uns.getNotification().getTitle());
-            dto.setContent(uns.getNotification().getContent());
-            dto.setTime(uns.getNotification().getTime().toString());
-            dto.setSenderId(uns.getNotification().getSender().getId());
-            dto.setSenderName(uns.getNotification().getSender().getProfile().getName());
-            dto.setRead(Boolean.TRUE.equals(uns.getIsRead()));
+            dto.setId(uns.getId());
+            dto.setTitle(uns.getTitle());
+            dto.setContent(uns.getContent());
+            dto.setTime(uns.getTime());
+            dto.setIsRead(Boolean.TRUE.equals(uns.getIsRead()));
             return dto;
         }).toList();
     }

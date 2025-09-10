@@ -1,0 +1,23 @@
+package org._java_proj.gym_management_system.features.assignedGymPackage.repository;
+
+import jakarta.validation.constraints.NotBlank;
+import org._java_proj.gym_management_system.common.constant.Status;
+import org._java_proj.gym_management_system.model.AssignedGymPackage;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface AssignedGymPackageRepository extends JpaRepository<AssignedGymPackage, Long> {
+
+    AssignedGymPackage findByTrainerIdAndStatus(Long trainerID, Status status);
+
+    int countByTrainerIdAndStatus(Long trainerId, Status status);
+
+    boolean existsByGymPackageIdAndStatus(Long gymPackageId, Status status);
+
+    Optional<AssignedGymPackage> findByTrainerIdAndGymPackageIdAndStatus(Long trainerID, Long packageId, Status status);
+
+    Optional<AssignedGymPackage> findByGymPackageIdAndStatus(Long packageId, Status status);
+}

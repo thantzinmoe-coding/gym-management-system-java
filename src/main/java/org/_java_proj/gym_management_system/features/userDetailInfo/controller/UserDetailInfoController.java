@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserDetailInfoController {
 
     private final UserDetailInfoService userDetailInfoService;
-    @PostMapping
+    @PostMapping("/{userId}")
     @Operation(
             summary = "Create a new user detail info",
             description = "Registers a new user detail info in the system.",
@@ -41,15 +41,16 @@ public class UserDetailInfoController {
             }
     )
     public ResponseEntity<ApiResponse> createUserDetailInfo(
+            @PathVariable("userId") Long userId,
             @Valid @RequestBody final UserDetailInfoCreateRequest userDetailInfoCreateRequest,
             final HttpServletRequest request
     ){
-        final ApiResponse response = this.userDetailInfoService.createUserDetailInfo(userDetailInfoCreateRequest);
+        final ApiResponse response = this.userDetailInfoService.createUserDetailInfo(userId, userDetailInfoCreateRequest);
         return ResponseUtils.buildResponse(request,response);
     }
 
 
-    @GetMapping("/{id}")
+    @GetMapping("{userId}")
     @Operation(
             summary = "Get user detail info detail",
             description = "Get user detail info detail by its ID.",
@@ -61,8 +62,8 @@ public class UserDetailInfoController {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User detail info not found")
             }
     )
-    public ResponseEntity<ApiResponse> getUserDetailInfo(@PathVariable(name="id") Long id, HttpServletRequest request) {
-        final ApiResponse response = this.userDetailInfoService.getUserDetailInfo(id);
+    public ResponseEntity<ApiResponse> getUserDetailInfoByUserID(@PathVariable(name="userId") Long id, HttpServletRequest request) {
+        final ApiResponse response = this.userDetailInfoService.getUserDetailInfoByUserId(id);
         return ResponseUtils.buildResponse(request, response);
     }
 

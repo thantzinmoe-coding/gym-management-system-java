@@ -92,7 +92,7 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public PaginatedApiResponse<FeedbackResponseDto> listFeedbacks(Pageable pageable) {
-        Page<Feedback> page = feedbackRepository.getAllFeedbacks(pageable);
+        Page<Feedback> page = feedbackRepository.findAll(pageable);
 
         List<FeedbackResponseDto> data = page.getContent().stream()
                 .map(feedback -> modelMapper.map(feedback, FeedbackResponseDto.class))
@@ -147,6 +147,19 @@ public class FeedbackServiceImpl implements FeedbackService {
                 .success(1)
                 .code(HttpStatus.OK.value())
                 .message("Feedback deleted successfully.")
+                .build();
+    }
+    @Override
+    public ApiResponse getAverageRatingByTrainer(Long trainerId) {
+        Double averageRating = feedbackRepository.findAverageRatingByTrainerId(trainerId);
+        if (averageRating == null) {
+            averageRating = 0.0; // Or handle the case where there's no rating
+        }
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .data(Map.of("averageRating", averageRating))
+                .message("Average rating fetched for trainer.")
                 .build();
     }
 }

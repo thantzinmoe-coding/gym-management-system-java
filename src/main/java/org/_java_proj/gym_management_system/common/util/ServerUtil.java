@@ -7,6 +7,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.service.EmailService;
+import org._java_proj.gym_management_system.model.UserDetail;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -84,14 +85,118 @@ public class ServerUtil {
 
         helper.setTo(email);
         helper.setFrom(fromMail);
-        helper.setSubject("Your FoodOrderingSystem Password Reset Code");
+        helper.setSubject("Your GymManagementSystem Password Reset Code");
 
         helper.setText(htmlContent , true);
         helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
 
 //        javaMailSender.send(message);
-        this.emailService.sendEmail(email, "Your FoodOrderingSystem Password Reset Code", htmlContent);
+        this.emailService.sendEmail(email, "Your GymManagementSystem Password Reset Code", htmlContent);
     }
+
+    public void sendTrainerAcceptEmail(String email, String trainerDashboardLink) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/trainer_accept.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", trainerDashboardLink);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Welcome to Gym Management System - Trainer Acceptance");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            this.emailService.sendEmail(email, "Welcome to Gym Management System - Trainer Acceptance", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public void sendRejectEmail(String email, String name) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/trainer_reject.html");
+            String htmlContent = htmlTemplate.replace("{{username}}", name);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Trainer Application Rejection - Gym Management System");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            // you already wrap send inside EmailService
+            this.emailService.sendEmail(email, "Trainer Application Rejection - Gym Management System", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendBookingAcceptEmail(String email, String packageName, String startDate,
+                                       String duration, String trainerName) {
+        try {
+            String userName = email.split("@")[0];
+            String htmlTemplate = loadTemplate("templates/mailTemplates/booking_accept.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", userName)
+                    .replace("{{packageName}}", packageName)
+                    .replace("{{startDate}}", startDate)
+                    .replace("{{duration}}", duration)
+                    .replace("{{trainerName}}", trainerName != null ? trainerName : "Not Assigned");
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Booking Confirmation - Gym Management System");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            this.emailService.sendEmail(email, "Booking Confirmation - Gym Management System", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void sendBookingRejectEmail(String email, String packageName, String name) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/booking_reject.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", name)
+                    .replace("{{packageName}}", packageName);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Booking Rejection - Gym Management System");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            this.emailService.sendEmail(email, "Booking Rejection - Gym Management System", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 
     public String loadTemplate(String path) throws IOException {
@@ -100,22 +205,29 @@ public class ServerUtil {
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
-    public String generateToken(UserDetails userDetails){
+    public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
 
+        // ✅ Add user roles
         String roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         claims.put("role", roles);
-//        SecretKey key = Keys.hmacShaKeyFor(SecretKey.getBytes(StandardCharsets.UTF_8));
+
+        // ✅ Add userId claim
+        if (userDetails instanceof UserDetail customUserDetail) {
+            claims.put("userId", customUserDetail.getUser().getId());
+        }
+
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(userDetails.getUsername()) // this is email in your UserDetail
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis()+Access_Token_ExpireTime))
+                .setExpiration(new Date(System.currentTimeMillis() + Access_Token_ExpireTime))
                 .signWith(Keys.hmacShaKeyFor(SecretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();

@@ -12,12 +12,16 @@ import java.util.Optional;
 
 public interface UserDetailInfoRepository extends JpaRepository<UserDetailInfo, Long> {
 
-    @Query("SELECT b FROM UserDetailInfo b WHERE b.entityId = :customerId")
+    @Query("SELECT b FROM UserDetailInfo b WHERE b.user.id = :customerId")
     Page<UserDetailInfo> findByEntityId(@Param("customerId") Long customerId, Pageable pageable);
 
     Optional<UserDetailInfo> findByIdAndStatus(Long id, Status status);
 
-    Optional<Object> findFirstByEntityIdAndStatus(Long entityId, Status status);
+    Optional<UserDetailInfo> findFirstByUserIdAndStatus(Long entityId, Status status);
 
-    boolean existsByEntityIdAndStatus(Long entityId, Status status);
+    boolean existsByUserIdAndStatus(Long entityId, Status status);
+
+    @Query("SELECT b FROM UserDetailInfo b WHERE b.user.id = :userId")
+    Optional<UserDetailInfo> findByUserId(@Param("userId") Long userId);
+
 }

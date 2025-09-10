@@ -23,6 +23,7 @@ public class Notification extends MasterData {
     @Column(nullable = false)
     private LocalDateTime time;
 
+    private String recipientRole;
 
     @ManyToOne
     private User recipient;

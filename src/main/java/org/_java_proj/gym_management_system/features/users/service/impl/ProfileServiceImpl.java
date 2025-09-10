@@ -101,6 +101,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found for user ID: " + userId));
 
         profile.delete();
+        profile.setPhone(null);
+        profile.setNrc(null);
         this.profileRepository.save(profile);
         return ApiResponse.builder()
                 .success(1)

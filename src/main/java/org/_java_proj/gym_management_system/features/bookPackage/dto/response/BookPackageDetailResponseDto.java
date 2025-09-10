@@ -3,7 +3,7 @@ package org._java_proj.gym_management_system.features.bookPackage.dto.response;
 import lombok.Data;
 import org._java_proj.gym_management_system.common.constant.MemberStatus;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 public class BookPackageDetailResponseDto {
@@ -18,6 +18,10 @@ public class BookPackageDetailResponseDto {
     private String gymPackageDescription;
 
     private double price;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     private String duration;
 

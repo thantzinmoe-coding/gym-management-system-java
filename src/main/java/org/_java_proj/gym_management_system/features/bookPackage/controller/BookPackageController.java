@@ -178,7 +178,7 @@ public class BookPackageController {
                     )
             )
     })
-    @PatchMapping("/{id}/cancel")
+    @DeleteMapping("/{id}/cancel")
     public ResponseEntity<org._java_proj.gym_management_system.config.response.dto.ApiResponse> cancelPackage(
             @Parameter(description = "Booking ID to cancel", required = true, example = "1")
             @PathVariable @Positive(message = "Booking ID must be positive") Long id) {
@@ -245,6 +245,21 @@ public class BookPackageController {
         Pageable pageable = PageRequest.of(page, size);
         PaginatedApiResponse<BookPackageDetailResponseDto> response = this.bookPackageService.getAllBookingsByPackage(packageId, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);
+    }
+
+    @Operation(
+            summary = "Get distinct user count by trainer",
+            description = "Returns the number of unique users who have booked a package assigned to the trainer"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User count retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
+    })
+    @GetMapping("/trainer/{trainerId}/user-count")
+    public ResponseEntity<Long> getUserCountByTrainer(
+            @PathVariable Long trainerId) {
+        Long count = bookPackageService.getUserCountByTrainer(trainerId);
+        return ResponseEntity.ok(count);
     }
 }
 

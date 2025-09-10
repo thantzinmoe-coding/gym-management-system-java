@@ -8,7 +8,6 @@ public class ScheduleResponseDto {
     private String day;
     private String startTime;
     private String endTime;
-    private String trainerName;
     private Long packageId;
     private String packageName;
 }
