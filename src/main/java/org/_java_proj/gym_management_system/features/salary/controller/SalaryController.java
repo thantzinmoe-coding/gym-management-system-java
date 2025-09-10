@@ -1,6 +1,7 @@
 package org._java_proj.gym_management_system.features.salary.controller;
 
 
+import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.features.salary.dto.request.SalaryRequestDto;
 import org._java_proj.gym_management_system.features.salary.dto.response.SalaryResponseDto;
 import org._java_proj.gym_management_system.features.salary.service.SalaryService;
@@ -14,10 +15,10 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("${api.base.path}/salaries")
+@RequiredArgsConstructor
 public class SalaryController {
 
-    @Autowired
-    private SalaryService salaryService;
+    private final SalaryService salaryService;
 
     @PostMapping
     public ResponseEntity<SalaryResponseDto> createSalary(@RequestBody SalaryRequestDto salaryRequestDto) {

@@ -178,7 +178,7 @@ public class BookPackageController {
                     )
             )
     })
-    @PatchMapping("/{id}/cancel")
+    @DeleteMapping("/{id}/cancel")
     public ResponseEntity<org._java_proj.gym_management_system.config.response.dto.ApiResponse> cancelPackage(
             @Parameter(description = "Booking ID to cancel", required = true, example = "1")
             @PathVariable @Positive(message = "Booking ID must be positive") Long id) {

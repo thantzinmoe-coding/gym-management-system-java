@@ -26,6 +26,8 @@ public class GymPackageResponseDto {
 
     private String duration;
 
+    private Long trainerId;
+
     private String trainerName;
 
     private Status status;

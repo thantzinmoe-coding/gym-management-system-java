@@ -56,4 +56,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
           AND u.status = :status
     """)
     Page<User> findAvailableTrainers(int maxCount, Status status, Pageable pageable);
+
+    Optional<User> findByIdAndStatus(Long trainerId, Status status);
 }

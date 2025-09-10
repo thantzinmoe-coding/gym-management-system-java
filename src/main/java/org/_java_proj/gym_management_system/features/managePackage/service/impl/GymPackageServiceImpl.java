@@ -53,6 +53,7 @@ public class GymPackageServiceImpl implements GymPackageService {
         gymPackage.setDuration(request.getDuration());
         gymPackage.setStartDate(request.getStartDate());
         gymPackage.setEndDate(request.getEndDate());
+        gymPackage.setStatus(Status.INACTIVE);
 
         gymPackageRepository.save(gymPackage);
 
@@ -90,6 +91,7 @@ public class GymPackageServiceImpl implements GymPackageService {
                     if (assignment != null && assignment.getStatus() == Status.ACTIVE) {
                         User trainer = assignment.getTrainer();
                         if (trainer != null) {
+                            dto.setTrainerId(trainer.getId());
                             dto.setTrainerName(trainer.getProfile().getName());
                         }
                     }
@@ -217,6 +219,25 @@ public class GymPackageServiceImpl implements GymPackageService {
         if (!expiredPackages.isEmpty()) {
             gymPackageRepository.deleteAll(expiredPackages);
             System.out.println("Deleted " + expiredPackages.size() + " expired packages.");
+        }
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?") // every midnight
+    @Transactional
+    public void autoActivatePackages() {
+        LocalDate today = LocalDate.now();
+
+        List<GymPackage> packagesToActivate = gymPackageRepository.findAll()
+                .stream()
+                .filter(pkg -> pkg.getStartDate() != null
+                        && pkg.getStartDate().isEqual(today)
+                        && pkg.getStatus() != Status.ACTIVE)
+                .toList();
+
+        if (!packagesToActivate.isEmpty()) {
+            packagesToActivate.forEach(pkg -> pkg.setStatus(Status.ACTIVE));
+            gymPackageRepository.saveAll(packagesToActivate);
+            System.out.println("Activated " + packagesToActivate.size() + " packages starting today.");
         }
     }
 

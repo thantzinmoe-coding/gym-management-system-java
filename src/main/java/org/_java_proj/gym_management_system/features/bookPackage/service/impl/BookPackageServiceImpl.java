@@ -13,6 +13,7 @@ import org._java_proj.gym_management_system.features.bookPackage.dto.response.Bo
 import org._java_proj.gym_management_system.features.bookPackage.dto.response.BookPackageResponseDto;
 import org._java_proj.gym_management_system.features.bookPackage.repository.BookPackageRepository;
 import org._java_proj.gym_management_system.features.bookPackage.service.BookPackageService;
+import org._java_proj.gym_management_system.features.managePackage.dto.response.ScheduleSummaryDto;
 import org._java_proj.gym_management_system.features.managePackage.repository.GymPackageRepository;
 import org._java_proj.gym_management_system.features.manageSchedule.repository.ScheduleRepository;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
@@ -43,12 +44,15 @@ public class BookPackageServiceImpl implements BookPackageService {
             throw new EntityNotFoundException("Member not found with id " + request.getMemberID());
         }
 
-        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(request.getGymPackageID(), Status.ACTIVE)
+        GymPackage gymPackage = this.gymPackageRepository.findByIdAndStatus(request.getGymPackageID(), Status.INACTIVE)
                 .orElseThrow(() -> new EntityNotFoundException("Gym package not found with id " + request.getGymPackageID()));
 
-        Schedule schedule = this.scheduleRepository.findById(gymPackage.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id "+ gymPackage.getId()));
+        List<Schedule> schedules = this.scheduleRepository.findByGymPackageId(gymPackage.getId());
 
+        // Check if the list of schedules is empty.
+        if (schedules.isEmpty()) {
+            throw new EntityNotFoundException("Schedule not found for gym package with id " + gymPackage.getId());
+        }
         // Business Rule: Check if user has any active booking
         if (bookPackageRepository.existsByUserIdAndMemberStatus(request.getMemberID(), MemberStatus.PENDING)) {
             throw new EntityCreationException("Member with id " + request.getMemberID() + " already has an pending booking.");
@@ -67,6 +71,7 @@ public class BookPackageServiceImpl implements BookPackageService {
         booking = bookPackageRepository.save(booking);
 
         // Build response
+        // Build response
         BookPackageResponseDto dto = new BookPackageResponseDto();
         dto.setBookingPackageID(booking.getId());
         dto.setBookingDate(booking.getCreatedAt().toString());
@@ -77,10 +82,21 @@ public class BookPackageServiceImpl implements BookPackageService {
         dto.setGymPackageDescription(gymPackage.getDescription());
         dto.setPrice(gymPackage.getPrice());
         dto.setDuration(gymPackage.getDuration());
-        dto.setStartTime(schedule.getStartTime());
-        dto.setEndTime(schedule.getEndTime());
-        dto.setDay(schedule.getDay());
+
+// ✅ convert entity schedules to DTO schedules
+        List<ScheduleSummaryDto> scheduleDtos = schedules.stream()
+                .map(schedule -> {
+                    ScheduleSummaryDto dtoSchedule = new ScheduleSummaryDto();
+                    dtoSchedule.setId(schedule.getId());
+                    dtoSchedule.setStartTime(schedule.getStartTime());
+                    dtoSchedule.setEndTime(schedule.getEndTime());
+                    return dtoSchedule;
+                })
+                .toList();
+
+        dto.setSchedules(scheduleDtos);
         dto.setStatus(booking.getMemberStatus());
+
 
         return ApiResponse.builder()
                 .success(1)
@@ -90,30 +106,21 @@ public class BookPackageServiceImpl implements BookPackageService {
                 .build();
     }
 
+
     @Override
     public ApiResponse cancelPackage(Long id) {
         Booking booking = bookPackageRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id " + id));
 
-        if (booking.getMemberStatus() == MemberStatus.CANCELLED) {
-            throw new EntityCreationException("Booking is already cancelled");
-        }
-
         if (booking.getMemberStatus() == MemberStatus.ACTIVE) {
             throw new EntityCreationException("Cannot cancel a active booking");
         }
 
-        booking.delete();
-        booking.setMemberStatus(MemberStatus.CANCELLED);
-        bookPackageRepository.save(booking);
-
-        BookPackageResponseDto dto = new BookPackageResponseDto();
-        dto.setCancelDate(booking.getDeletedAt().toString());
+        bookPackageRepository.delete(booking);
 
         return ApiResponse.builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(Map.of("CancelTime", dto))
                 .message("Booking package canceled successfully. You can now book a new package.")
                 .build();
     }
@@ -151,8 +158,12 @@ public class BookPackageServiceImpl implements BookPackageService {
         GymPackage gymPackage = this.gymPackageRepository.findById(booking.getGymPackage().getId())
                 .orElseThrow(() -> new EntityNotFoundException("Gym package not found with id "+ booking.getGymPackage().getId()));
 
-        Schedule schedule = this.scheduleRepository.findById(gymPackage.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id "+ gymPackage.getId()));
+        List<Schedule> schedules = this.scheduleRepository.findByGymPackageId(gymPackage.getId());
+
+        // Check if the list of schedules is empty.
+        if (schedules.isEmpty()) {
+            throw new EntityNotFoundException("Schedule not found for gym package with id " + gymPackage.getId());
+        }
 
         BookPackageResponseDto dto = new BookPackageResponseDto();
         dto.setBookingPackageID(booking.getId());
@@ -164,9 +175,19 @@ public class BookPackageServiceImpl implements BookPackageService {
         dto.setGymPackageDescription(gymPackage.getDescription());
         dto.setPrice(gymPackage.getPrice());
         dto.setDuration(gymPackage.getDuration());
-        dto.setStartTime(schedule.getStartTime());
-        dto.setEndTime(schedule.getEndTime());
-        dto.setDay(schedule.getDay());
+
+// ✅ convert entity schedules to DTO schedules
+        List<ScheduleSummaryDto> scheduleDtos = schedules.stream()
+                .map(schedule -> {
+                    ScheduleSummaryDto dtoSchedule = new ScheduleSummaryDto();
+                    dtoSchedule.setId(schedule.getId());
+                    dtoSchedule.setStartTime(schedule.getStartTime());
+                    dtoSchedule.setEndTime(schedule.getEndTime());
+                    return dtoSchedule;
+                })
+                .toList();
+
+        dto.setSchedules(scheduleDtos);
         dto.setStatus(booking.getMemberStatus());
 
         return ApiResponse.builder()

@@ -101,7 +101,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         Schedule schedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Schedule not found with id " + id));
 
-        schedule.setDay(request.getDays());
+        schedule.setDay(request.getDay());
         schedule.setStartTime(request.getStartTime());
         schedule.setEndTime(request.getEndTime());
         // TODO: update trainer & package as well

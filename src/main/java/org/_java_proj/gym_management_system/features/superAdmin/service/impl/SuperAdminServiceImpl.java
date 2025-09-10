@@ -3,11 +3,13 @@ package org._java_proj.gym_management_system.features.superAdmin.service.impl;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.common.constant.Status;
+import org._java_proj.gym_management_system.common.util.ServerUtil;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginationMeta;
 import org._java_proj.gym_management_system.features.bookPackage.repository.BookPackageRepository;
+import org._java_proj.gym_management_system.features.superAdmin.dto.request.RejectBookingRequest;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.*;
 import org._java_proj.gym_management_system.features.superAdmin.service.SuperAdminService;
 import org._java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.TrainerResponseDto;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +39,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final BookPackageRepository bookPackageRepository;
     private final UserDetailInfoRepository userDetailInfoRepository;
     private final ProfileRepository profileRepository;
+    private final ServerUtil serverUtil;
 
 
     @Override
@@ -129,10 +133,40 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         dto.setGymPackageName(booking.getGymPackage().getName());
         dto.setDescription(booking.getGymPackage().getDescription());
 
+        String email = booking.getUser().getEmail();
+        String packageName = booking.getGymPackage().getName();
+        String startDate = booking.getGymPackage().getStartDate().toString();   // assuming you store this
+        String duration = booking.getGymPackage().getDuration();
+        String trainerName = booking.getGymPackage().getAssignedGymPackage().getTrainer().getProfile().getName() != null ?booking.getGymPackage().getAssignedGymPackage().getTrainer().getProfile().getName() : null;
+
+
+        serverUtil.sendBookingAcceptEmail(email, packageName, startDate, duration, trainerName);
+
         return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
                 .data(Map.of("AcceptedBookingResponse", dto))
                 .message("Booking package accepted.").build();
 
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse rejectBooking(Long bookingId, RejectBookingRequest request) {
+        Booking booking = bookPackageRepository.findById(bookingId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking not found"));
+
+        bookPackageRepository.delete(booking);
+
+        serverUtil.sendBookingRejectEmail(
+                request.getEmail(),
+                request.getPackageName(),
+                request.getName()
+        );
+
+        return ApiResponse.builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Booking rejected successfully and email sent")
+                .build();
     }
 
 
@@ -158,7 +192,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     }
 
     @Override
-    public ApiResponse acceptTrainer(Long trainerId, String trainerStatus) {
+    public ApiResponse changeTrainerStatus(Long trainerId, String trainerStatus) {
         User trainer = this.userRepository.findById(trainerId)
                 .orElseThrow(() -> new EntityNotFoundException("No trainer not found with id "+ trainerId));
 
@@ -181,6 +215,39 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .data(Map.of("AcceptedTrainerResponse", dto))
                 .message("Trainer accepted successfully to use the gym management system.").build();
     }
+
+
+    @Override
+    public ApiResponse acceptTrainer(Long trainerId) {
+        User trainer = this.userRepository.findByIdAndStatus(trainerId, Status.PENDING)
+                .orElseThrow(() -> new EntityNotFoundException("Pending trainer not found with id "+ trainerId));
+
+        trainer.setStatus(Status.ACTIVE);
+        userRepository.save(trainer);
+
+        String name = trainer.getProfile().getName();
+
+        serverUtil.sendTrainerAcceptEmail(trainer.getEmail(), name);
+
+        return ApiResponse.builder().success(1).code(HttpStatus.OK.value())
+                .message("Trainer accepted.").build();
+    }
+
+    @Override
+    public ApiResponse rejectTrainer(Long trainerId) {
+        User trainer = userRepository.findById(trainerId)
+                .orElseThrow(() -> new RuntimeException("Trainer not found"));
+
+        trainer.setStatus(Status.INACTIVE);
+        userRepository.save(trainer);
+        // send rejection email
+        serverUtil.sendRejectEmail(trainer.getEmail(), trainer.getProfile().getName());
+
+        return ApiResponse.builder()
+                .success(1).code(HttpStatus.OK.value())
+                .message("Trainer rejected successfully and email sent").build();
+    }
+
 
     @Override
     public PaginatedApiResponse<TrainerResponseDto> getAllTrainers(Pageable pageable) {
@@ -211,6 +278,8 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .data(trainersDto)
                 .build();
     }
+
+
     @Override
     public PaginatedApiResponse<TrainerResponseDto> getAllActiveTrainers(Pageable pageable) {
         Page<User> trainersPage = userRepository.findByRoleAndStatus("TRAINER",Status.ACTIVE, pageable);

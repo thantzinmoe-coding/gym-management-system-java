@@ -56,4 +56,10 @@ public class AssignedGymPackageController {
         ApiResponse response = this.assignedGymPackageService.unassignedGymPackage(trainerID, packageId);
         return ResponseUtils.buildResponse(request, response);
     }
+
+    @PatchMapping("{trainerId}/{packageId}")
+    public ResponseEntity<ApiResponse> updateAssign(@PathVariable("trainerId") Long trainerId,@PathVariable("packageId") Long packageId, HttpServletRequest request) {
+        ApiResponse response = this.assignedGymPackageService.updateAssign(trainerId, packageId);
+        return ResponseUtils.buildResponse(request, response);
+    }
 }

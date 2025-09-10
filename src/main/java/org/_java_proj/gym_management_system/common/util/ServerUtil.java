@@ -94,6 +94,110 @@ public class ServerUtil {
         this.emailService.sendEmail(email, "Your GymManagementSystem Password Reset Code", htmlContent);
     }
 
+    public void sendTrainerAcceptEmail(String email, String trainerDashboardLink) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/trainer_accept.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", trainerDashboardLink);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Welcome to Gym Management System - Trainer Acceptance");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            this.emailService.sendEmail(email, "Welcome to Gym Management System - Trainer Acceptance", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public void sendRejectEmail(String email, String name) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/trainer_reject.html");
+            String htmlContent = htmlTemplate.replace("{{username}}", name);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Trainer Application Rejection - Gym Management System");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            // you already wrap send inside EmailService
+            this.emailService.sendEmail(email, "Trainer Application Rejection - Gym Management System", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendBookingAcceptEmail(String email, String packageName, String startDate,
+                                       String duration, String trainerName) {
+        try {
+            String userName = email.split("@")[0];
+            String htmlTemplate = loadTemplate("templates/mailTemplates/booking_accept.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", userName)
+                    .replace("{{packageName}}", packageName)
+                    .replace("{{startDate}}", startDate)
+                    .replace("{{duration}}", duration)
+                    .replace("{{trainerName}}", trainerName != null ? trainerName : "Not Assigned");
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Booking Confirmation - Gym Management System");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            this.emailService.sendEmail(email, "Booking Confirmation - Gym Management System", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void sendBookingRejectEmail(String email, String packageName, String name) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/booking_reject.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", name)
+                    .replace("{{packageName}}", packageName);
+
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setFrom(fromMail);
+            helper.setSubject("Booking Rejection - Gym Management System");
+
+            helper.setText(htmlContent, true);
+            helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
+
+            this.emailService.sendEmail(email, "Booking Rejection - Gym Management System", htmlContent);
+
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 
     public String loadTemplate(String path) throws IOException {
         ClassPathResource resource = new ClassPathResource(path);

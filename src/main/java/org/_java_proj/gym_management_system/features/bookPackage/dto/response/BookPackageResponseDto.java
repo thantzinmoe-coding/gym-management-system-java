@@ -2,8 +2,11 @@ package org._java_proj.gym_management_system.features.bookPackage.dto.response;
 
 import lombok.Data;
 import org._java_proj.gym_management_system.common.constant.MemberStatus;
+import org._java_proj.gym_management_system.features.managePackage.dto.response.ScheduleSummaryDto;
+import org._java_proj.gym_management_system.model.Schedule;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class BookPackageResponseDto {
@@ -28,11 +31,7 @@ public class BookPackageResponseDto {
 
     private String duration;
 
-    private String startTime;
-
-    private String endTime;
-
-    private String day;
+    private List<ScheduleSummaryDto> schedules;
 
     private MemberStatus status;
 

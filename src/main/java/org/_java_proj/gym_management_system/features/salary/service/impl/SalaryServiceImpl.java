@@ -1,4 +1,7 @@
 package org._java_proj.gym_management_system.features.salary.service.impl;
+
+import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.features.salary.dto.request.SalaryRequestDto;
 import org._java_proj.gym_management_system.features.salary.dto.response.SalaryResponseDto;
 import org._java_proj.gym_management_system.model.Salary;
@@ -7,36 +10,49 @@ import org._java_proj.gym_management_system.features.salary.repository.SalaryRep
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 
 import org._java_proj.gym_management_system.features.salary.service.SalaryService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class SalaryServiceImpl implements SalaryService {
 
-    @Autowired
-    private SalaryRepository salaryRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final SalaryRepository salaryRepository;
+    private final UserRepository userRepository;
 
     @Override
     public SalaryResponseDto createSalary(SalaryRequestDto salaryRequestDto) {
+        LocalDate now = LocalDate.now();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+
+        boolean alreadyPaid = salaryRepository
+                .findByTrainerIdOrderBySalaryYearDescSalaryMonthDesc(salaryRequestDto.getTrainerId())
+                .stream()
+                .anyMatch(s -> s.getSalaryMonth() == month && s.getSalaryYear() == year);
+
+        if (alreadyPaid) {
+            throw new IllegalStateException("Salary already paid for this trainer in " + month + "/" + year);
+        }
+
         User trainer = userRepository.findById(salaryRequestDto.getTrainerId())
-                .orElseThrow(() -> new IllegalArgumentException("Trainer not found with id: " + salaryRequestDto.getTrainerId()));
+                .orElseThrow(() -> new IllegalArgumentException("Trainer not found"));
 
         Salary salary = new Salary();
-        salary.setPaymentDate(salaryRequestDto.getPaymentDate());
+        salary.setPaymentDate(now);
+        salary.setSalaryMonth(month);
+        salary.setSalaryYear(year);
         salary.setAmount(salaryRequestDto.getAmount());
         salary.setNotes(salaryRequestDto.getNotes());
-        salary.setDeduction(salaryRequestDto.getDeduction());
+        salary.setStatus(Status.PAID);
         salary.setTrainer(trainer);
 
-        Salary savedSalary = salaryRepository.save(salary);
-        return mapToResponseDto(savedSalary);
+        Salary saved = salaryRepository.save(salary);
+        return mapToResponseDto(saved);
     }
 
     @Override
@@ -56,16 +72,14 @@ public class SalaryServiceImpl implements SalaryService {
     @Override
     public SalaryResponseDto updateSalary(Long id, SalaryRequestDto salaryRequestDto) {
         Salary existingSalary = salaryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Salary not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Salary record not found with id: " + id));
 
-        User trainer = userRepository.findById(salaryRequestDto.getTrainerId())
-                .orElseThrow(() -> new IllegalArgumentException("Trainer not found with id: " + salaryRequestDto.getTrainerId()));
+        // The trainerId should not change during a payment update, so we can ignore it from the request.
 
-        existingSalary.setPaymentDate(salaryRequestDto.getPaymentDate());
         existingSalary.setAmount(salaryRequestDto.getAmount());
         existingSalary.setNotes(salaryRequestDto.getNotes());
-        existingSalary.setDeduction(salaryRequestDto.getDeduction());
-        existingSalary.setTrainer(trainer);
+        existingSalary.setPaymentDate(LocalDate.now()); // Set payment date on confirmation
+        existingSalary.setStatus(Status.PAID); // <-- Change status to PAID
 
         Salary updatedSalary = salaryRepository.save(existingSalary);
         return mapToResponseDto(updatedSalary);
@@ -82,8 +96,16 @@ public class SalaryServiceImpl implements SalaryService {
         responseDto.setPaymentDate(salary.getPaymentDate());
         responseDto.setAmount(salary.getAmount());
         responseDto.setNotes(salary.getNotes());
-        responseDto.setDeduction(salary.getDeduction());
         responseDto.setTrainerId(salary.getTrainer().getId());
+        responseDto.setTrainerName(
+                salary.getTrainer().getProfile() != null
+                        ? salary.getTrainer().getProfile().getName()
+                        : "Unknown"
+        );
+        responseDto.setStatus(salary.getStatus());
+        responseDto.setSalaryMonth(salary.getSalaryMonth());
+        responseDto.setSalaryYear(salary.getSalaryYear());
         return responseDto;
     }
+
 }

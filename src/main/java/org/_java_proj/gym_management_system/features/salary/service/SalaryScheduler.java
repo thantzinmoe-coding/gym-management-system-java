@@ -28,9 +28,10 @@ public class SalaryScheduler {
      * Creates a pending salary record for all active trainers.
      */
     @Scheduled(cron = "0 0 0 1 * *")
+//    @Scheduled(cron = "*/10 * * * * *")
     public void createPendingSalariesForNewMonth() {
         LocalDate now = LocalDate.now();
-        int month = now.getMonthValue();
+        int month = 10;
         int year = now.getYear();
 
         List<User> activeTrainers = new ArrayList<>();
@@ -59,6 +60,7 @@ public class SalaryScheduler {
                 Salary pendingSalary = new Salary();
                 pendingSalary.setTrainer(trainer);
                 pendingSalary.setAmount(0.0); // Initial amount is 0
+                pendingSalary.setPaymentDate(LocalDate.now());
                 pendingSalary.setSalaryMonth(month);
                 pendingSalary.setSalaryYear(year);
                 pendingSalary.setStatus(Status.PENDING); // Set status to PENDING

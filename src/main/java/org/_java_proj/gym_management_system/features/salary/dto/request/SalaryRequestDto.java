@@ -8,9 +8,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class SalaryRequestDto {
-    private LocalDate paymentDate;
     private double amount;
     private String notes;
-    private double deduction;
     private Long trainerId; // Use trainerId in request
 }

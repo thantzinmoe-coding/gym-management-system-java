@@ -10,4 +10,6 @@ public interface AssignedGymPackageService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     ApiResponse unassignedGymPackage(Long trainerID, Long packageId);
+
+    ApiResponse updateAssign(Long trainerId, Long packageId);
 }

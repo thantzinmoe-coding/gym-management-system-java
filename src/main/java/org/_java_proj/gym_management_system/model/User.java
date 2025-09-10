@@ -47,6 +47,9 @@ public class User extends MasterData {
     @JsonManagedReference
     private List<ClassGroup> groups = new ArrayList<>();
 
+    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Salary> salary = new ArrayList<>();
+
     @OneToMany(mappedBy = "sender")
     @JsonManagedReference // The forward part of the reference
     private List<Notification> sentNotifications;

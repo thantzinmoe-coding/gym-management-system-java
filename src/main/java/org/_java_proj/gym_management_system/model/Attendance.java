@@ -26,10 +26,6 @@ public class Attendance extends MasterData {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "attendance_type", nullable = false)
-    private AttendanceType attendanceType;
-
     // For trainers
     private Double hoursWorked;
 

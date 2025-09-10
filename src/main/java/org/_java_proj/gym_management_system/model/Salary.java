@@ -20,10 +20,14 @@ public class Salary extends MasterData {
 
     private String notes;
 
-    private double deduction;
+    @Column(nullable = false)
+    private int salaryMonth;  // e.g., 9 for September
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "trainer_id", nullable = false, unique = true)
+    @Column(nullable = false)
+    private int salaryYear;   // e.g., 2025
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "trainer_id", nullable = false)
     private User trainer;
 
     public Salary() {}

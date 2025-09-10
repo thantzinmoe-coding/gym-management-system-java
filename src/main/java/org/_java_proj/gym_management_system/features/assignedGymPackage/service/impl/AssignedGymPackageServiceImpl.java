@@ -37,7 +37,7 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
         }
 
         GymPackage gymPackage = this.gymPackageRepository.findById(request.getGymPackageId())
-                .orElseThrow(() -> new EntityNotFoundException("Gym package not found to assign with is "+ request.getGymPackageId()));
+                .orElseThrow(() -> new EntityNotFoundException("Gym package not found to assign with id "+ request.getGymPackageId()));
 
         this.gymPackageRepository.findByIdAndStatus(request.getGymPackageId(), Status.INACTIVE)
                 .orElseThrow(() -> new EntityCreationException("This package is active. Can't assign."));
@@ -56,7 +56,6 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
 
         AssignedGymPackage assignedGymPackage = new AssignedGymPackage();
         assignedGymPackage.setTrainer(trainer);
-        assignedGymPackage.setStatus(Status.INACTIVE);
         assignedGymPackage.setGymPackage(gymPackage);
 
         assignedGymPackageRepository.save(assignedGymPackage);
@@ -89,5 +88,22 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
                 .code(HttpStatus.OK.value()) // Use OK (200) for updates, not CREATED (201)
                 .message("Trainer unassigned successfully.")
                 .build();
+    }
+
+    @Override
+    public ApiResponse updateAssign(Long trainerId, Long packageId) {
+        AssignedGymPackage assignedGymPackage = this.assignedGymPackageRepository
+                .findByGymPackageIdAndStatus(packageId, Status.ACTIVE)
+                .orElseThrow(() -> new EntityNotFoundException("No assigning gym package found."));
+
+        User trainer = this.userRepository.findById(trainerId)
+                        .orElseThrow(() -> new EntityNotFoundException("No trainer found with id " + trainerId));
+
+        assignedGymPackage.setTrainer(trainer);
+        this.assignedGymPackageRepository.save(assignedGymPackage);
+
+        return ApiResponse.builder()
+                .success(1).code(HttpStatus.OK.value())
+                .message("Assigning updated successfully.").build();
     }
 }

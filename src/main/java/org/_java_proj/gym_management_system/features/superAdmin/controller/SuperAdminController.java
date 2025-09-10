@@ -9,6 +9,7 @@ import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
+import org._java_proj.gym_management_system.features.superAdmin.dto.request.RejectBookingRequest;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.AvailableTrainersResponse;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.SuperAdminDashBoardResponse;
@@ -71,7 +72,7 @@ public class SuperAdminController {
         return ResponseUtils.buildPaginatedResponse(request, response);
     }
 
-    @PostMapping("{bookingId}")
+    @PatchMapping("{bookingId}")
     @Operation(
             summary = "Admin accept the booking package",
             description = "Admin accept the booking package that is pending from member.",
@@ -85,6 +86,23 @@ public class SuperAdminController {
     )
     public ResponseEntity<ApiResponse> acceptBooking(@PathVariable("bookingId") Long id, HttpServletRequest request) {
         ApiResponse response = this.superAdminService.acceptBooking(id);
+        return ResponseUtils.buildResponse(request, response);
+    }
+
+    @DeleteMapping("/reject-member-booking/{bookingId}")
+    @Operation(
+            summary = "Admin reject the booking package",
+            description = "Admin reject the booking package that is pending from member.",
+            parameters = {
+                    @Parameter(name = "id", description = "Booking ID", required = true)
+            },
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Admin rejected booking successfully"),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request")
+            }
+    )
+    public ResponseEntity<ApiResponse> rejectBooking(@PathVariable Long bookingId,@RequestBody RejectBookingRequest rejectBookingRequest, HttpServletRequest request) {
+        ApiResponse response = this.superAdminService.rejectBooking(bookingId, rejectBookingRequest);
         return ResponseUtils.buildResponse(request, response);
     }
 
@@ -124,7 +142,25 @@ public class SuperAdminController {
         return ResponseUtils.buildPaginatedResponse(request, response);
     }
 
-    @PatchMapping("/accept-trainer/{trainerId}")
+    @PatchMapping("/change-trainer-status/{trainerId}")
+    @Operation(
+            summary = "Admin change the gym trainer status",
+            description = "Admin change the gym trainer who's status to use active or inactive.",
+            parameters = {
+                    @Parameter(name = "trainerId", description = "Trainer ID", required = true)
+            },
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Admin change gym trainer's status successfully"),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request")
+            }
+    )
+    public ResponseEntity<ApiResponse> changeTrainerStatus(@PathVariable("trainerId") Long trainerId, @RequestBody String trainerStatus, HttpServletRequest request) {
+        ApiResponse response = this.superAdminService.changeTrainerStatus(trainerId, trainerStatus);
+        return ResponseUtils.buildResponse(request, response);
+    }
+
+
+    @PatchMapping("/accept-trainer-application/{trainerId}")
     @Operation(
             summary = "Admin accept the gym trainer",
             description = "Admin accept the gym trainer who is pending to use the system.",
@@ -136,10 +172,29 @@ public class SuperAdminController {
                     @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request")
             }
     )
-    public ResponseEntity<ApiResponse> acceptTrainer(@PathVariable("trainerId") Long trainerId, @RequestBody String trainerStatus, HttpServletRequest request) {
-        ApiResponse response = this.superAdminService.acceptTrainer(trainerId, trainerStatus);
+    public ResponseEntity<ApiResponse> acceptTrainer(@PathVariable("trainerId") Long trainerId, HttpServletRequest request) {
+        ApiResponse response = this.superAdminService.acceptTrainer(trainerId);
         return ResponseUtils.buildResponse(request, response);
     }
+
+    @PatchMapping("/reject-trainer-application/{trainerId}")
+    @Operation(
+            summary = "Admin reject the gym trainer",
+            description = "Admin reject the gym trainer who is pending to use the system.",
+            parameters = {
+                    @Parameter(name = "trainerId", description = "Trainer ID", required = true)
+            },
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Admin rejected gym trainer successfully"),
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request")
+            }
+    )
+    public ResponseEntity<ApiResponse> rejectTrainer(@PathVariable("trainerId") Long trainerId, HttpServletRequest request) {
+        ApiResponse response = this.superAdminService.rejectTrainer(trainerId);
+        return ResponseUtils.buildResponse(request, response);
+    }
+
+
     @GetMapping("/all-trainers")
     @Operation(summary = "Get all trainers (paginated)")
     public ResponseEntity<PaginatedApiResponse<TrainerResponseDto>> getAllTrainers(

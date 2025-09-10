@@ -18,9 +18,6 @@ public class AttendanceCreateRequest {
     @Schema(description = "Attendance time in", example = "3PM")
     private String timeIn;
 
-    @Schema(description = "Attendance type", example = "MEMBER")
-    private AttendanceType attendanceType;
-
     @Schema(description = "Working hours for trainer", example = "3")
     private Double hoursWorked; // For trainers
 

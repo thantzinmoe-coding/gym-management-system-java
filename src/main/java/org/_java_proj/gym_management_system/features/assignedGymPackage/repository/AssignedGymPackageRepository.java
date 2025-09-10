@@ -18,4 +18,6 @@ public interface AssignedGymPackageRepository extends JpaRepository<AssignedGymP
     boolean existsByGymPackageIdAndStatus(Long gymPackageId, Status status);
 
     Optional<AssignedGymPackage> findByTrainerIdAndGymPackageIdAndStatus(Long trainerID, Long packageId, Status status);
+
+    Optional<AssignedGymPackage> findByGymPackageIdAndStatus(Long packageId, Status status);
 }

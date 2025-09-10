@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
         if(Objects.equals(role.getName(), "TRAINER")) {
-            user.setStatus(Status.INACTIVE);
+            user.setStatus(Status.PENDING);
         }
 
         userRepository.save(user);
@@ -153,7 +153,7 @@ public class UserServiceImpl implements UserService {
         UserLoginProjection userData = userRepository.findUserLoginByEmail(requestDto.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with email " + requestDto.getEmail()));
 
-        if ("TRAINER".equals(userData.getRoleName()) && "INACTIVE".equals(userData.getStatus())) {
+        if ("TRAINER".equals(userData.getRoleName()) && "PENDING".equals(userData.getStatus())) {
             throw new UnauthorizedException("You can't login. Please wait for system Admin Approval.");
         }
 
