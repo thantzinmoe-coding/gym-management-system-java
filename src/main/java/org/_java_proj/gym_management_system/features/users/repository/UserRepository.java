@@ -56,4 +56,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
           AND u.status = :status
     """)
     Page<User> findAvailableTrainers(int maxCount, Status status, Pageable pageable);
+
+    @Query("SELECT DISTINCT u FROM User u JOIN u.assignedGymPackages a")
+    Page<User> findBookedUsers(Pageable pageable);
 }

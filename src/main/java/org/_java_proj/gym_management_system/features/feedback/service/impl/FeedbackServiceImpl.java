@@ -95,7 +95,11 @@ public class FeedbackServiceImpl implements FeedbackService {
         Page<Feedback> page = feedbackRepository.findAll(pageable);
 
         List<FeedbackResponseDto> data = page.getContent().stream()
-                .map(feedback -> modelMapper.map(feedback, FeedbackResponseDto.class))
+                .map(feedback -> {
+                    FeedbackResponseDto dto = modelMapper.map(feedback, FeedbackResponseDto.class);
+                    dto.setTrainerName(feedback.getTrainer().getProfile().getName());
+                    return dto;
+                })
                 .toList();
 
         PaginationMeta meta = new PaginationMeta();

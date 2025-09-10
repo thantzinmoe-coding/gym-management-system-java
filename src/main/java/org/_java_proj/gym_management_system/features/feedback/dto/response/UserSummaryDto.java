@@ -13,7 +13,7 @@ public class UserSummaryDto {
     private String email;
     private String roleName;
 
-   // public UserSummaryDto() {}
+    // public UserSummaryDto() {}
 
     public static UserSummaryDto fromUser(User user) {
         if (user == null) return null;

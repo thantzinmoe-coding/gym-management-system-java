@@ -41,7 +41,7 @@ public class ManageAttendanceController {
         return ResponseUtils.buildResponse(servletRequest, response);
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/trainer/{userId}")
     @Operation(summary = "Get all attendance records for a specific user")
     public ResponseEntity<ApiResponse> getAttendancesByUser(
             @PathVariable Long userId,

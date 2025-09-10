@@ -294,5 +294,37 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .data(availableTrainersResponses)
                 .build();
     }
+
+    @Override
+    public PaginatedApiResponse<SuperAdminDashBoardResponse> getBookedUsers(Pageable pageable) {
+        Page<User> bookedUsersPage = userRepository.findBookedUsers(pageable);
+
+        List<SuperAdminDashBoardResponse> userResponses = bookedUsersPage.getContent().stream()
+                .filter(user -> user.getProfile() != null)
+                .map(user -> SuperAdminDashBoardResponse.builder()
+                        .id(user.getId())
+                        .name(user.getProfile().getName())
+                        .email(user.getEmail())
+                        .phone(user.getProfile().getPhone())
+                        .address(user.getProfile().getAddress())
+                        .role(user.getRole().getName())
+                        .status(user.getStatus())
+
+                        .build())
+                .collect(Collectors.toList());
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(bookedUsersPage.getTotalElements());
+        meta.setTotalPages(bookedUsersPage.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<SuperAdminDashBoardResponse>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Booked users fetched successfully")
+                .meta(meta)
+                .data(userResponses)
+                .build();
+    }
 }
 

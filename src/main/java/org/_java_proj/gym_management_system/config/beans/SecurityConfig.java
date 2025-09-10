@@ -37,7 +37,10 @@ public class SecurityConfig {
 
     private static final String[] AUTH_WHITELIST = {
             "/api/v1/auth/**",
-            "/api/v1/auth/users/verifyEmail"
+            "/api/v1/auth/users/verifyEmail",
+            "/api/v1/feedback/**",
+            "/api/v1/equipment/**",
+            "/api/v1/attendance/**",
     };
 
     private static final String[] CHAT_WHITELIST = {
