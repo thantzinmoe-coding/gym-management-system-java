@@ -21,6 +21,8 @@ public class Equipment extends MasterData { // Inherits from MasterData
     @Column(nullable = false)
     private LocalDate purchaseDate; // Corrected from purchase_date
 
+    private String equipmentPhoto;
+
     @Column(nullable = false)
     @Convert(converter = ConditionConverter.class)
     private Condition equipmentCondition; // Renamed field

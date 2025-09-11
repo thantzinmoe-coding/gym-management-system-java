@@ -11,6 +11,7 @@ import org._java_proj.gym_management_system.config.response.dto.PaginationMeta;
 import org._java_proj.gym_management_system.features.bookPackage.dto.request.BookPackageRequest;
 import org._java_proj.gym_management_system.features.bookPackage.dto.response.BookPackageDetailResponseDto;
 import org._java_proj.gym_management_system.features.bookPackage.dto.response.BookPackageResponseDto;
+import org._java_proj.gym_management_system.features.bookPackage.dto.response.BookedUsersDetailResponse;
 import org._java_proj.gym_management_system.features.bookPackage.repository.BookPackageRepository;
 import org._java_proj.gym_management_system.features.bookPackage.service.BookPackageService;
 import org._java_proj.gym_management_system.features.managePackage.dto.response.ScheduleSummaryDto;
@@ -84,7 +85,7 @@ public class BookPackageServiceImpl implements BookPackageService {
         dto.setDuration(gymPackage.getDuration());
 
 // ✅ convert entity schedules to DTO schedules
-        List<ScheduleSummaryDto> scheduleDtos = schedules.stream()
+        List<ScheduleSummaryDto> schedulesDto = schedules.stream()
                 .map(schedule -> {
                     ScheduleSummaryDto dtoSchedule = new ScheduleSummaryDto();
                     dtoSchedule.setId(schedule.getId());
@@ -94,7 +95,7 @@ public class BookPackageServiceImpl implements BookPackageService {
                 })
                 .toList();
 
-        dto.setSchedules(scheduleDtos);
+        dto.setSchedules(schedulesDto);
         dto.setStatus(booking.getMemberStatus());
 
 
@@ -177,7 +178,7 @@ public class BookPackageServiceImpl implements BookPackageService {
         dto.setDuration(gymPackage.getDuration());
 
 // ✅ convert entity schedules to DTO schedules
-        List<ScheduleSummaryDto> scheduleDtos = schedules.stream()
+        List<ScheduleSummaryDto> schedulesDto = schedules.stream()
                 .map(schedule -> {
                     ScheduleSummaryDto dtoSchedule = new ScheduleSummaryDto();
                     dtoSchedule.setId(schedule.getId());
@@ -187,7 +188,7 @@ public class BookPackageServiceImpl implements BookPackageService {
                 })
                 .toList();
 
-        dto.setSchedules(scheduleDtos);
+        dto.setSchedules(schedulesDto);
         dto.setStatus(booking.getMemberStatus());
 
         return ApiResponse.builder()
@@ -217,10 +218,59 @@ public class BookPackageServiceImpl implements BookPackageService {
                 .build();
     }
 
+    @Override
+    public PaginatedApiResponse<BookedUsersDetailResponse> getActiveUsersByTrainer(Long trainerId, Pageable pageable) {
+        Page<Booking> page = bookPackageRepository.findActiveBookingsByTrainer(trainerId, pageable);
+
+        List<BookedUsersDetailResponse> data = page.getContent().stream()
+                .map(this::mapToBookedUserDto)
+                .toList();
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(page.getTotalElements());
+        meta.setTotalPages(page.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<BookedUsersDetailResponse>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Active booked users fetched successfully.")
+                .meta(meta)
+                .data(data)
+                .build();
+   }
+
+
+    private BookedUsersDetailResponse mapToBookedUserDto(Booking booking) {
+        User user = booking.getUser();
+        Profile profile = user.getProfile(); // Assuming User has profile entity
+        UserDetailInfo detail = user.getUserDetailInfo(); // Assuming user has detailed info entity
+
+        return BookedUsersDetailResponse.builder()
+                .id(user.getId())
+                .name(profile.getName())
+                .email(user.getEmail())
+                .nrc(profile.getNrc())
+                .phone(profile.getPhone())
+                .dob(profile.getDob() != null ? profile.getDob().toString() : null)
+                .gender(profile.getGender())
+                .height(detail != null ? detail.getHeight() : null)
+                .weight(detail != null ? detail.getWeight() : null)
+                .goal(detail != null ? detail.getGoal() : null)
+                .avatarUrl(profile.getProfilePic() != null ? profile.getProfilePic() : null)
+                .build();
+    }
+
+
 
     @Override
     public Long getUserCountByTrainer(Long trainerId) {
         return bookPackageRepository.countDistinctUsersByTrainer(trainerId);
+    }
+
+    @Override
+    public Long getUserCountByGymPackage(Long gymPackageId) {
+        return bookPackageRepository.countDistinctUsersByGymPackageAndMemberStatus(gymPackageId, MemberStatus.ACTIVE);
     }
 
     private BookPackageDetailResponseDto mapToDto(Booking booking) {
@@ -233,6 +283,7 @@ public class BookPackageServiceImpl implements BookPackageService {
         dto.setBookingDate(booking.getCreatedAt().toString());
         dto.setMemberStatus(booking.getMemberStatus());
         dto.setGymPackageName(gymPackage.getName());
+        dto.setTrainerName(gymPackage.getAssignedGymPackage().getTrainer().getProfile().getName());
         dto.setGymPackageDescription(gymPackage.getDescription());
         dto.setPrice(gymPackage.getPrice());
         dto.setStartDate(gymPackage.getStartDate());

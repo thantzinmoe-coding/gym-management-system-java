@@ -7,7 +7,6 @@ import org._java_proj.gym_management_system.common.entity.MasterData;
 import org._java_proj.gym_management_system.common.constant.AttendanceType; // Corrected import
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -25,6 +24,10 @@ public class Attendance extends MasterData {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "attendance_type", nullable = false)
+    private AttendanceType attendanceType;
 
     // For trainers
     private Double hoursWorked;

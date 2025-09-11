@@ -237,5 +237,19 @@ public class SuperAdminController {
         return ResponseUtils.buildPaginatedResponse(servletRequest, response);
     }
 
+    @GetMapping("/booked-users")
+    @Operation(summary = "Get all users who have booked a package (paginated)")
+    public ResponseEntity<PaginatedApiResponse<SuperAdminDashBoardResponse>> getBookedUsers(
+            @Parameter(description = "Page number (starts from 0)")
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Page size")
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedApiResponse<SuperAdminDashBoardResponse> response = superAdminService.getBookedUsers(pageable);
+        return ResponseUtils.buildPaginatedResponse(request, response);
+    }
+
 }
 

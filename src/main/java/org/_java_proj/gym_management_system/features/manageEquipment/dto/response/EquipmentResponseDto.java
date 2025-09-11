@@ -7,10 +7,11 @@ import java.time.LocalDate;
 
 @Data
 public class EquipmentResponseDto {
-    private Long id;
+    private String id; // Changed to String
     private String name;
     private LocalDate purchaseDate;
     private Condition equipmentCondition;
     private LocalDate lastMaintenanceDate;
     private LocalDate nextMaintenanceDate;
+    private String equipmentPhoto;
 }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.common.util.ServerUtil;
+import org._java_proj.gym_management_system.config.exceptions.BadRequestException;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
@@ -12,12 +13,11 @@ import org._java_proj.gym_management_system.features.bookPackage.repository.Book
 import org._java_proj.gym_management_system.features.superAdmin.dto.request.RejectBookingRequest;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.*;
 import org._java_proj.gym_management_system.features.superAdmin.service.SuperAdminService;
-import org._java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository;
-import org._java_proj.gym_management_system.features.users.repository.ProfileRepository;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.model.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -37,8 +37,6 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final BookPackageRepository bookPackageRepository;
-    private final UserDetailInfoRepository userDetailInfoRepository;
-    private final ProfileRepository profileRepository;
     private final ServerUtil serverUtil;
 
 
@@ -48,15 +46,18 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User id " + id + " is not Found"));
 
-        Profile profile = this.profileRepository.findById(user.getProfile().getId()).
-                orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+        int page = 0;
+        int size = 20;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Booking> bookings = bookPackageRepository.findByUserId(id, pageable);
 
-        UserDetailInfo userDetailInfo = this.userDetailInfoRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new EntityNotFoundException("User detail info not found"));
+        if(bookings.getTotalElements() != 0) {
+            throw new BadRequestException("Member with booking can't be deleted");
+        }
 
-        this.userDetailInfoRepository.delete(userDetailInfo);
-
-        this.profileRepository.delete(profile);
+        if(userRepository.existsByIdAndRole_NameAndStatus(id, "TRAINER", Status.ACTIVE)) {
+            throw new BadRequestException("Active trainer can't be deleted");
+        }
 
         this.userRepository.delete(user);
 
@@ -95,6 +96,9 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                         .nrc(user.getProfile().getNrc())
                         .dob(String.valueOf(user.getProfile().getDob()))
                         .gender(user.getProfile().getGender())
+                        .weight(user.getUserDetailInfo().getWeight())
+                        .height(user.getUserDetailInfo().getHeight())
+                        .goal(user.getUserDetailInfo().getGoal())
                         .specialization(user.getUserDetailInfo().getSpecialization())
                         .experience(user.getUserDetailInfo().getExperience())
                         .avatarUrl(user.getProfile().getProfilePic())
@@ -363,5 +367,44 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .data(availableTrainersResponses)
                 .build();
     }
+
+    @Override
+    public PaginatedApiResponse<SuperAdminDashBoardResponse> getBookedUsers(Pageable pageable) {
+        Page<Object[]> bookedUsersPage = bookPackageRepository.findBookedUsersWithStatus(pageable);
+
+        List<SuperAdminDashBoardResponse> userResponses = bookedUsersPage.getContent().stream()
+                .map(row -> {
+                    User user = (User) row[0];
+                    MemberStatus memberStatus = (MemberStatus) row[1];
+                    String packageName = (String) row[2];
+
+                    return SuperAdminDashBoardResponse.builder()
+                            .id(user.getId())
+                            .name(user.getProfile() != null ? user.getProfile().getName() : null)
+                            .email(user.getEmail())
+                            .phone(user.getProfile() != null ? user.getProfile().getPhone() : null)
+                            .address(user.getProfile() != null ? user.getProfile().getAddress() : null)
+                            .role(user.getRole() != null ? user.getRole().getName() : null)
+                            .status(user.getStatus())
+                            .memberStatus(memberStatus) // <-- include it in response
+                            .packageName(packageName)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(bookedUsersPage.getTotalElements());
+        meta.setTotalPages(bookedUsersPage.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<SuperAdminDashBoardResponse>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Booked users fetched successfully")
+                .meta(meta)
+                .data(userResponses)
+                .build();
+    }
+
 }
 

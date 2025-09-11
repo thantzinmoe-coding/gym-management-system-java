@@ -38,6 +38,10 @@ public class SecurityConfig {
     private static final String[] AUTH_WHITELIST = {
             "/api/v1/auth/**",
             "/api/v1/auth/users/verifyEmail",
+    };
+
+    private static final String[] HOME_WHITELIST = {
+            "/api/v1/home-summary/**",
             "/api/v1/feedback/**",
             "/api/v1/equipment/**"
     };
@@ -79,7 +83,8 @@ public class SecurityConfig {
                 authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
-                        .requestMatchers(CHAT_WHITELIST).permitAll() // Allow public access to the WebSocket endpoint
+                        .requestMatchers(CHAT_WHITELIST).permitAll()
+                        .requestMatchers(HOME_WHITELIST).permitAll()
                         .requestMatchers("/webjars/**").permitAll()
                         .anyRequest().authenticated()
                 )

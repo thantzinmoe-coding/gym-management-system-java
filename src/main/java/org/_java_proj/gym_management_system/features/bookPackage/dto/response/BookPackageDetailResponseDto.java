@@ -15,6 +15,8 @@ public class BookPackageDetailResponseDto {
 
     private String gymPackageName;
 
+    private String trainerName;
+
     private String gymPackageDescription;
 
     private double price;

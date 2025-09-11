@@ -12,7 +12,7 @@ import org._java_proj.gym_management_system.features.manageAttendance.service.At
 import org._java_proj.gym_management_system.model.Attendance;
 import org._java_proj.gym_management_system.model.User;
 import org._java_proj.gym_management_system.model.Profile;
-// Corrected import
+import org._java_proj.gym_management_system.common.constant.AttendanceType; // Corrected import
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setUser(user);
         attendance.setDate(request.getDate());
         attendance.setTimeIn(request.getTimeIn());
-        attendance.setHoursWorked(request.getHoursWorked());
+        attendance.setAttendanceType(request.getAttendanceType());
+
+        if (request.getAttendanceType() == AttendanceType.TRAINER) {
+            attendance.setHoursWorked(request.getHoursWorked());
+        } else if (request.getAttendanceType() == AttendanceType.MEMBER) {
+            attendance.setPackageDays(request.getPackageDays());
+        }
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
         AttendanceResponseDto dto = mapToDto(savedAttendance);
@@ -105,6 +111,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         if (request.getTimeOut() != null && attendance.getTimeOut() == null) {
             attendance.setTimeOut(request.getTimeOut());
+            attendance.setHoursWorked(request.getHoursWorked());
             Attendance updatedAttendance = attendanceRepository.save(attendance);
             AttendanceResponseDto dto = mapToDto(updatedAttendance);
 
@@ -147,13 +154,12 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .build();
     }
 
-
     @Override
     public ApiResponse getTotalHoursWorkedByUser(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
 
-        Double totalHours = attendanceRepository.getTotalHoursWorkedByUser(userId);
+        Double totalHours = attendanceRepository.getTotalHoursWorkedByUserForCurrentMonth(userId);
 
         return ApiResponse.builder()
                 .success(1)
@@ -165,7 +171,6 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .message("Total hours worked calculated successfully.")
                 .build();
     }
-
 
     private AttendanceResponseDto mapToDto(Attendance attendance) {
         AttendanceResponseDto dto = new AttendanceResponseDto();
@@ -189,6 +194,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                 dto.setUserRole(attendance.getUser().getRole().getName());
             }
         }
+        dto.setPackageDays(attendance.getPackageDays());
+        dto.setAttendanceType(attendance.getAttendanceType());
 
         return dto;
     }

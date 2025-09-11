@@ -42,4 +42,6 @@ public interface SuperAdminService {
     PaginatedApiResponse<TrainerResponseDto> getAllActiveTrainers(Pageable pageable);
 
     PaginatedApiResponse<AvailableTrainersResponse> getAllAvailableTrainers(Pageable pageable);
+
+    PaginatedApiResponse<SuperAdminDashBoardResponse> getBookedUsers(Pageable pageable);
 }

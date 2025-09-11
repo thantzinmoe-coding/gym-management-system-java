@@ -11,6 +11,5 @@ public interface AttendanceService {
     ApiResponse getAttendancesByUser(Long userId);
     ApiResponse updateAttendance(Long id, AttendanceUpdateRequest request);
     ApiResponse deleteAttendance(Long id);
-
     ApiResponse getTotalHoursWorkedByUser(Long userId);
 }

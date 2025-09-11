@@ -1,7 +1,10 @@
 package org._java_proj.gym_management_system.features.assignedGymPackage.service;
 
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.features.assignedGymPackage.dto.request.AssignedGymPackageRequest;
+import org._java_proj.gym_management_system.features.assignedGymPackage.dto.response.TrainerPackage;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 public interface AssignedGymPackageService {
@@ -12,4 +15,6 @@ public interface AssignedGymPackageService {
     ApiResponse unassignedGymPackage(Long trainerID, Long packageId);
 
     ApiResponse updateAssign(Long trainerId, Long packageId);
+
+    PaginatedApiResponse<TrainerPackage> getAssignedPackagesByTrainer(Long trainerId, Pageable pageable);
 }

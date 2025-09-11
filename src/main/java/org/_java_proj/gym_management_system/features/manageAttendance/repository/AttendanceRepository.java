@@ -7,16 +7,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByUser(User user);
 
-    @Query("SELECT COALESCE(SUM(a.hoursWorked), 0) " +
-            "FROM Attendance a " +
-            "WHERE a.user.id = :userId")
-    Double getTotalHoursWorkedByUser(@Param("userId") Long userId);
+    @Query("""
+       SELECT COALESCE(SUM(a.hoursWorked), 0)
+       FROM Attendance a
+       WHERE a.user.id = :userId
+         AND MONTH(a.date) = MONTH(CURRENT_DATE)
+         AND YEAR(a.date) = YEAR(CURRENT_DATE)
+       """)
+    Double getTotalHoursWorkedByUserForCurrentMonth(@Param("userId") Long userId);
+
 }

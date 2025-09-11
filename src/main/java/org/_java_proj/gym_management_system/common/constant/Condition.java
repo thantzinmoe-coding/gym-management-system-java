@@ -1,13 +1,13 @@
 package org._java_proj.gym_management_system.common.constant;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 public enum Condition implements BaseEnum<Integer> {
-    GOOD(1),
-    FAIR(2),
-    POOR(3);
+    Excellent(1),
+    Good(2),
+    Fair(3),
+    Poor(4);
 
     private final int value;
 

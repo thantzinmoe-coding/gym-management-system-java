@@ -14,6 +14,7 @@ import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResp
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
 import org._java_proj.gym_management_system.features.bookPackage.dto.request.BookPackageRequest;
 import org._java_proj.gym_management_system.features.bookPackage.dto.response.BookPackageDetailResponseDto;
+import org._java_proj.gym_management_system.features.bookPackage.dto.response.BookedUsersDetailResponse;
 import org._java_proj.gym_management_system.features.bookPackage.service.BookPackageService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -260,6 +261,26 @@ public class BookPackageController {
             @PathVariable Long trainerId) {
         Long count = bookPackageService.getUserCountByTrainer(trainerId);
         return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/{trainerId}/booked-users")
+    @Operation(
+            summary = "Get distinct user by trainer",
+            description = "Returns unique users who have booked a package assigned to the trainer"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Trainer not found")
+    })
+    public ResponseEntity<PaginatedApiResponse<BookedUsersDetailResponse>> getBookedUsers(
+            @PathVariable Long trainerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedApiResponse<BookedUsersDetailResponse> response = this.bookPackageService.getActiveUsersByTrainer(trainerId, pageable);
+        return ResponseUtils.buildPaginatedResponse(request, response);
     }
 }
 

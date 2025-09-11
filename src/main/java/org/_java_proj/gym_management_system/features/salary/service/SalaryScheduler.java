@@ -31,7 +31,7 @@ public class SalaryScheduler {
 //    @Scheduled(cron = "*/10 * * * * *")
     public void createPendingSalariesForNewMonth() {
         LocalDate now = LocalDate.now();
-        int month = 10;
+        int month = now.getMonthValue();
         int year = now.getYear();
 
         List<User> activeTrainers = new ArrayList<>();
