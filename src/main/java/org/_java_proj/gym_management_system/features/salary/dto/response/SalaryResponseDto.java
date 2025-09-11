@@ -15,6 +15,8 @@ public class SalaryResponseDto {
     private String notes;
     private Long trainerId;
     private String trainerName;
+    private String trainerEmail;
+    private String trainerAvatarUrl;
     private Status status;
 
     // Add these

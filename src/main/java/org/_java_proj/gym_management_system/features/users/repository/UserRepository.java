@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -46,7 +45,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.role.name = :trainer")
     Page<User> findByRoleName(String trainer, Pageable pageable);
 
-    List<User> findByIdIn(List<Long> userIds);
 
     @Query("""
         SELECT DISTINCT u
@@ -58,4 +56,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findAvailableTrainers(int maxCount, Status status, Pageable pageable);
 
     Optional<User> findByIdAndStatus(Long trainerId, Status status);
+
+    int countByRole_NameAndStatus(String role, Status status);
+
+    boolean existsByIdAndRole_NameAndStatus(Long id, String trainer, Status status);
 }

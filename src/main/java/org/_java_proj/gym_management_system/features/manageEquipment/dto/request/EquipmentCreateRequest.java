@@ -2,6 +2,7 @@ package org._java_proj.gym_management_system.features.manageEquipment.dto.reques
 
 import lombok.Data;
 import org._java_proj.gym_management_system.common.constant.Condition;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -12,4 +13,5 @@ public class EquipmentCreateRequest {
     private Condition equipmentCondition;
     private LocalDate lastMaintenanceDate;
     private LocalDate nextMaintenanceDate;
+    private MultipartFile equipmentPhoto;
 }

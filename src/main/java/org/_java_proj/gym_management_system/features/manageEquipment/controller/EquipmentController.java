@@ -19,26 +19,37 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("${api.base.path}/equipment")
+@RequestMapping("/api/v1/equipment")
 @Tag(name = "Equipment API", description = "Endpoints for managing gym equipment")
 public class EquipmentController {
 
     private final EquipmentService equipmentService;
 
-    @PostMapping
-    @Operation(summary = "Add new equipment")
+    @PostMapping(consumes = "multipart/form-data")
+    @Operation(summary = "Add new equipment with photo")
     public ResponseEntity<ApiResponse> createEquipment(
-            @RequestBody EquipmentCreateRequest request,
+            @ModelAttribute EquipmentCreateRequest request,
             HttpServletRequest servletRequest
     ) {
         ApiResponse response = equipmentService.createEquipment(request);
         return ResponseUtils.buildResponse(servletRequest, response);
     }
 
+    @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+    @Operation(summary = "Update equipment with photo")
+    public ResponseEntity<ApiResponse> updateEquipment(
+            @PathVariable String id, // Changed to String to match frontend
+            @ModelAttribute EquipmentUpdateRequest request,
+            HttpServletRequest servletRequest
+    ) {
+        ApiResponse response = equipmentService.updateEquipment(id, request);
+        return ResponseUtils.buildResponse(servletRequest, response);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get equipment by ID")
     public ResponseEntity<ApiResponse> getEquipment(
-            @PathVariable Long id,
+            @PathVariable String id, // Changed to String
             HttpServletRequest servletRequest
     ) {
         ApiResponse response = equipmentService.getEquipment(id);
@@ -66,21 +77,10 @@ public class EquipmentController {
         return ResponseUtils.buildPaginatedResponse(servletRequest, response);
     }
 
-    @PatchMapping("/{id}")
-    @Operation(summary = "Update equipment")
-    public ResponseEntity<ApiResponse> updateEquipment(
-            @PathVariable Long id,
-            @RequestBody EquipmentUpdateRequest request,
-            HttpServletRequest servletRequest
-    ) {
-        ApiResponse response = equipmentService.updateEquipment(id, request);
-        return ResponseUtils.buildResponse(servletRequest, response);
-    }
-
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete equipment")
     public ResponseEntity<ApiResponse> deleteEquipment(
-            @PathVariable Long id,
+            @PathVariable String id, // Changed to String
             HttpServletRequest servletRequest
     ) {
         ApiResponse response = equipmentService.deleteEquipment(id);

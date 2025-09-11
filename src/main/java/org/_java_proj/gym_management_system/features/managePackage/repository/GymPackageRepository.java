@@ -18,4 +18,5 @@ public interface GymPackageRepository extends JpaRepository<GymPackage, Long> {
     Optional<GymPackage> findByIdAndStatus(Long gymPackageId, Status status);
 
     Page<GymPackage> findByGymPackageType(GymPackageType type, Pageable pageable);
+
 }

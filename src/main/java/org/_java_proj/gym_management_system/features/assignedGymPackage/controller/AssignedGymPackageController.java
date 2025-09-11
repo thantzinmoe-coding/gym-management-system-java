@@ -8,14 +8,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org._java_proj.gym_management_system.config.response.util.ResponseUtils;
 import org._java_proj.gym_management_system.features.assignedGymPackage.dto.request.AssignedGymPackageRequest;
+import org._java_proj.gym_management_system.features.assignedGymPackage.dto.response.TrainerPackage;
 import org._java_proj.gym_management_system.features.assignedGymPackage.service.AssignedGymPackageService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("${api.base.path}/assign-schedule")
+@RequestMapping("${api.base.path}/assign-gym-package")
 @RequiredArgsConstructor
 @Tag(name = "Assign Schedule API", description = "Endpoints for assigning schedule for trainer")
 public class AssignedGymPackageController {
@@ -61,5 +65,18 @@ public class AssignedGymPackageController {
     public ResponseEntity<ApiResponse> updateAssign(@PathVariable("trainerId") Long trainerId,@PathVariable("packageId") Long packageId, HttpServletRequest request) {
         ApiResponse response = this.assignedGymPackageService.updateAssign(trainerId, packageId);
         return ResponseUtils.buildResponse(request, response);
+    }
+
+    @GetMapping("/assign-package-by-trainer/{trainerId}")
+    @Operation(description = "Assign packages by trainer")
+    public ResponseEntity<PaginatedApiResponse<TrainerPackage>> getAllTrainersPackages(
+            @PathVariable Long trainerId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        PaginatedApiResponse<TrainerPackage> response = assignedGymPackageService.getAssignedPackagesByTrainer(trainerId, pageable);
+        return ResponseUtils.buildPaginatedResponse(request, response);
     }
 }

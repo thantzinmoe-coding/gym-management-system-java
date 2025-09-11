@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import org._java_proj.gym_management_system.common.constant.MemberStatus;
 import org._java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse;
 import org._java_proj.gym_management_system.model.Booking;
+import org._java_proj.gym_management_system.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -86,14 +87,29 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
             Pageable pageable
     );
 
-
-
-
     @Query("SELECT COUNT(DISTINCT b.user.id) " +
             "FROM Booking b " +
             "JOIN AssignedGymPackage agp ON agp.gymPackage.id = b.gymPackage.id " +
             "WHERE agp.trainer.id = :trainerId")
     Long countDistinctUsersByTrainer(@Param("trainerId") Long trainerId);
 
+
+    @Query("""
+        SELECT b 
+        FROM Booking b
+        JOIN AssignedGymPackage agp ON agp.gymPackage = b.gymPackage
+        WHERE agp.trainer.id = :trainerId
+          AND b.memberStatus = org._java_proj.gym_management_system.common.constant.MemberStatus.ACTIVE
+    """)
+    Page<Booking> findActiveBookingsByTrainer(@Param("trainerId") Long trainerId, Pageable pageable);
+
+    @Query("SELECT COUNT(DISTINCT b.user.id) FROM Booking b WHERE b.gymPackage.id = :gymPackageId AND b.memberStatus = :memberStatus")
+    Long countDistinctUsersByGymPackageAndMemberStatus(Long gymPackageId, MemberStatus memberStatus);
+
+    @Query("""
+    SELECT DISTINCT b.user, b.memberStatus, b.gymPackage.name
+    FROM Booking b
+""")
+    Page<Object[]> findBookedUsersWithStatus(Pageable pageable);
 
 }

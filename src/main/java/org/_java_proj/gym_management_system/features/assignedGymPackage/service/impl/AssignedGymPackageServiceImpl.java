@@ -5,20 +5,30 @@ import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.exceptions.EntityCreationException;
 import org._java_proj.gym_management_system.config.exceptions.EntityNotFoundException;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
+import org._java_proj.gym_management_system.config.response.dto.PaginationMeta;
 import org._java_proj.gym_management_system.features.assignedGymPackage.dto.request.AssignedGymPackageRequest;
 import org._java_proj.gym_management_system.features.assignedGymPackage.dto.response.AssignedGymPackageResponseDto;
+import org._java_proj.gym_management_system.features.assignedGymPackage.dto.response.TrainerPackage;
 import org._java_proj.gym_management_system.features.assignedGymPackage.repository.AssignedGymPackageRepository;
 import org._java_proj.gym_management_system.features.assignedGymPackage.service.AssignedGymPackageService;
+import org._java_proj.gym_management_system.features.bookPackage.service.BookPackageService;
+import org._java_proj.gym_management_system.features.managePackage.dto.response.ScheduleSummaryDto;
 import org._java_proj.gym_management_system.features.managePackage.repository.GymPackageRepository;
 import org._java_proj.gym_management_system.features.users.repository.UserRepository;
 import org._java_proj.gym_management_system.model.AssignedGymPackage;
 import org._java_proj.gym_management_system.model.GymPackage;
 import org._java_proj.gym_management_system.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +36,7 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
     private final AssignedGymPackageRepository assignedGymPackageRepository;
     private final UserRepository userRepository;
     private final GymPackageRepository gymPackageRepository;
+    private final BookPackageService bookPackageService;
 
     @Override
     public ApiResponse assignedGymPackage(AssignedGymPackageRequest request) {
@@ -106,4 +117,68 @@ public class AssignedGymPackageServiceImpl implements AssignedGymPackageService 
                 .success(1).code(HttpStatus.OK.value())
                 .message("Assigning updated successfully.").build();
     }
+
+    @Override
+    public PaginatedApiResponse<TrainerPackage> getAssignedPackagesByTrainer(Long trainerId, Pageable pageable) {
+        // Fetch assigned packages for the trainer with pagination
+        Page<AssignedGymPackage> page = assignedGymPackageRepository.findByTrainerId(trainerId, pageable);
+
+        List<TrainerPackage> packagesDto = page.getContent().stream().map(assignedPackage -> {
+            GymPackage gymPackage = assignedPackage.getGymPackage();
+
+            TrainerPackage dto = new TrainerPackage();
+            dto.setId(gymPackage.getId().toString());
+            dto.setName(gymPackage.getName());
+            dto.setDuration(gymPackage.getDuration());
+            dto.setPrice(gymPackage.getPrice());
+            dto.setDescription(gymPackage.getDescription());
+            dto.setStartDate(gymPackage.getStartDate().toString());
+            dto.setEndDate(gymPackage.getEndDate().toString());
+            dto.setType(gymPackage.getGymPackageType());
+
+            List<ScheduleSummaryDto> schedulesDto = gymPackage.getSchedules().stream()
+                    .map(schedule -> {
+                        ScheduleSummaryDto dtoSchedule = new ScheduleSummaryDto();
+                        dtoSchedule.setId(schedule.getId());
+                        dtoSchedule.setStartTime(schedule.getStartTime());
+                        dtoSchedule.setEndTime(schedule.getEndTime());
+                        dtoSchedule.setDay(schedule.getDay());
+                        return dtoSchedule;
+                    })
+                    .toList();
+
+            dto.setSchedule(schedulesDto);
+
+            // Count clients enrolled
+            Long clientsCount = bookPackageService.getUserCountByGymPackage(gymPackage.getId());
+            dto.setClientsEnrolled(clientsCount != null ? clientsCount.intValue() : 0);
+
+            // Determine status based on dates
+            LocalDate now = LocalDate.now();
+            if (now.isBefore(gymPackage.getStartDate())) {
+                dto.setStatus("upcoming");
+            } else if (now.isAfter(gymPackage.getEndDate())) {
+                dto.setStatus("completed");
+            } else {
+                dto.setStatus("active");
+            }
+
+            return dto;
+        }).collect(Collectors.toList());
+
+        // Prepare pagination meta
+        PaginationMeta meta = new PaginationMeta();
+        meta.setTotalItems(page.getTotalElements());
+        meta.setTotalPages(page.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return PaginatedApiResponse.<TrainerPackage>builder()
+                .success(1)
+                .code(HttpStatus.OK.value())
+                .message("Assigned packages fetched successfully.")
+                .meta(meta)
+                .data(packagesDto)
+                .build();
+    }
+
 }

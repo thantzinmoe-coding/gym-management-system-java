@@ -3,6 +3,8 @@ package org._java_proj.gym_management_system.features.assignedGymPackage.reposit
 import jakarta.validation.constraints.NotBlank;
 import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.model.AssignedGymPackage;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -20,4 +22,6 @@ public interface AssignedGymPackageRepository extends JpaRepository<AssignedGymP
     Optional<AssignedGymPackage> findByTrainerIdAndGymPackageIdAndStatus(Long trainerID, Long packageId, Status status);
 
     Optional<AssignedGymPackage> findByGymPackageIdAndStatus(Long packageId, Status status);
+
+    Page<AssignedGymPackage> findByTrainerId(Long trainerId, Pageable pageable);
 }

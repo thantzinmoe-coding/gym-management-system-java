@@ -102,6 +102,9 @@ public class SalaryServiceImpl implements SalaryService {
                         ? salary.getTrainer().getProfile().getName()
                         : "Unknown"
         );
+        responseDto.setTrainerEmail(salary.getTrainer().getEmail());
+        assert salary.getTrainer().getProfile() != null;
+        responseDto.setTrainerAvatarUrl(salary.getTrainer().getProfile().getProfilePic());
         responseDto.setStatus(salary.getStatus());
         responseDto.setSalaryMonth(salary.getSalaryMonth());
         responseDto.setSalaryYear(salary.getSalaryYear());
