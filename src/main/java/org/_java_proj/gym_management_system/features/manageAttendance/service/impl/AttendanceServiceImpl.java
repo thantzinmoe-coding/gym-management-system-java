@@ -3,6 +3,7 @@ package org._java_proj.gym_management_system.features.manageAttendance.service.i
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org._java_proj.gym_management_system.common.constant.Status;
 import org._java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org._java_proj.gym_management_system.features.manageAttendance.dto.request.AttendanceCreateRequest;
 import org._java_proj.gym_management_system.features.manageAttendance.dto.request.AttendanceUpdateRequest;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +45,13 @@ public class AttendanceServiceImpl implements AttendanceService {
         } else if (request.getAttendanceType() == AttendanceType.MEMBER) {
             attendance.setPackageDays(request.getPackageDays());
         }
+
+        if(Objects.equals(request.getStatus(), "ACTIVE")) {
+            attendance.setStatus(Status.ACTIVE);
+        } else {
+            attendance.setStatus(Status.INACTIVE);
+        }
+
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
         AttendanceResponseDto dto = mapToDto(savedAttendance);
@@ -196,6 +205,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
         dto.setPackageDays(attendance.getPackageDays());
         dto.setAttendanceType(attendance.getAttendanceType());
+        dto.setStatus(attendance.getStatus());
 
         return dto;
     }

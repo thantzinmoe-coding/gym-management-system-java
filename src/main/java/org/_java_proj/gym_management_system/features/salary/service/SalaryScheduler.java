@@ -27,8 +27,10 @@ public class SalaryScheduler {
      * Runs at 00:00 on the 1st day of every month.
      * Creates a pending salary record for all active trainers.
      */
-    @Scheduled(cron = "0 0 0 1 * *")
+//   @Scheduled(cron = "0 0 0 1 * *")
 //    @Scheduled(cron = "*/10 * * * * *")
+//    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void createPendingSalariesForNewMonth() {
         LocalDate now = LocalDate.now();
         int month = now.getMonthValue();

@@ -2,6 +2,7 @@ package org._java_proj.gym_management_system.features.manageAttendance.dto.respo
 
 import lombok.Data;
 import org._java_proj.gym_management_system.common.constant.AttendanceType; // Corrected import
+import org._java_proj.gym_management_system.common.constant.Status;
 
 import java.time.LocalDate;
 
@@ -17,4 +18,5 @@ public class AttendanceResponseDto {
     private AttendanceType attendanceType;
     private Double hoursWorked;
     private Integer packageDays;
+    private Status status;
 }

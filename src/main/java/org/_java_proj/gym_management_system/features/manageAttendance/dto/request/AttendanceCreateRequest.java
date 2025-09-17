@@ -3,6 +3,7 @@ package org._java_proj.gym_management_system.features.manageAttendance.dto.reque
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org._java_proj.gym_management_system.common.constant.AttendanceType; // Corrected import
+import org._java_proj.gym_management_system.common.constant.Status;
 
 import java.time.LocalDate;
 
@@ -26,4 +27,6 @@ public class AttendanceCreateRequest {
 
     @Schema(description = "Package days", example = "1")
     private Integer packageDays; // For users
+
+    private String status;
 }
