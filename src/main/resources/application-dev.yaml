@@ -4,11 +4,23 @@ spring:
     username: avnadmin
     password: ${AIVEN_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # Start with only 1 or 2 connections to speed up the boot
+      minimum-idle: 1
+      maximum-pool-size: 5
+      # Increase timeout so it doesn't give up if the cloud is slow
+      connection-timeout: 30000
+      # Helps skip some initial metadata checks
+      initialization-fail-timeout: 0
+
+  main:
+    lazy-initialization: true
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
+    generate-ddl: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
     properties:
       hibernate:
