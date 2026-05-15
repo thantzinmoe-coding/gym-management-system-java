@@ -62,13 +62,12 @@ public class UserServiceImpl implements UserService {
         this.storageService = factory.getConfiguredStorageService();
     }
 
-
     @Transactional
     public ApiResponse createUser(UserCreateRequest request) {
         final Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Role not found."));
 
-        if(userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityCreationException("Email already exists.");
         }
 
@@ -76,7 +75,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
-        if(Objects.equals(role.getName(), "TRAINER")) {
+        if (Objects.equals(role.getName(), "TRAINER")) {
             user.setStatus(Status.PENDING);
         }
 
@@ -88,8 +87,6 @@ public class UserServiceImpl implements UserService {
                 .data(Map.of("currentUser", dto))
                 .message("User account created Successfully.").build();
     }
-
-
 
     @Transactional
     public String uploadProfilePicture(final Long userId, final MultipartFile file) {
@@ -109,30 +106,28 @@ public class UserServiceImpl implements UserService {
         return fileUrl;
     }
 
-
     @Override
     public ApiResponse verifyEmail(String email) {
         try {
-            serverUtil.sendCodeToEmail(email , 15 , "verifyAccountMail" , "verify-account:");
+            serverUtil.sendCodeToEmail(email, 15, "verifyAccountMail", "verify-account:");
             return new ApiResponse(1, 200, null, new HashMap<>(), "Verify Email Sent successfully.");
-        } catch(Exception e){
-            return new ApiResponse(0, 400, null, new HashMap<>(), "Error Sending Mail");
+        } catch (Exception e) {
+            return new ApiResponse(0, 400, null, new HashMap<>(), "Error Sending Mail. " + e.getMessage());
         }
     }
 
     @Override
     public ApiResponse resendCode(String email) {
         try {
-            serverUtil.sendCodeToEmail(email , 15 , "verifyAccountMail" , "verify-account:");
+            serverUtil.sendCodeToEmail(email, 15, "verifyAccountMail", "verify-account:");
             return new ApiResponse(1, 200, null, new HashMap<>(), "Resend Mail Sent successfully.");
-        } catch(Exception e){
+        } catch (Exception e) {
             return new ApiResponse(0, 400, null, new HashMap<>(), "Error Sending Mail");
         }
     }
 
-
     @Override
-    public ApiResponse verifyAccount(long code , String email) {
+    public ApiResponse verifyAccount(long code, String email) {
         String key = "verify-account:" + email;
         String storedCode = redisTemplate.opsForValue().get(key);
         boolean valid = storedCode != null && storedCode.equals(String.valueOf(code));
@@ -144,7 +139,6 @@ public class UserServiceImpl implements UserService {
             return new ApiResponse(0, 400, null, new HashMap<>(), "Invalid or expired code.");
         }
     }
-
 
     @Override
     public ApiResponse getUserAuthData(AuthRequestDto requestDto, String token, String refreshToken) {
@@ -181,7 +175,8 @@ public class UserServiceImpl implements UserService {
         UserDetailInfoResponseDto userDetailInfoResponseDto = null;
         if (!"ADMIN".equals(userData.getRoleName())) {
             ProfileProjection profile = profileRepository.findProfileSummaryByUserId(userData.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
+                    .orElseThrow(
+                            () -> new EntityNotFoundException("Profile not found for user ID: " + userData.getId()));
             profileResponse = new ProfileResponseDto(
                     profile.getName(),
                     profile.getNrc(),
@@ -189,21 +184,19 @@ public class UserServiceImpl implements UserService {
                     profile.getDob(),
                     profile.getGender(),
                     profile.getProfilePic(),
-                    profile.getAddress()
-            );
-
+                    profile.getAddress());
 
             UserDetailInfo userDetailInfo = userDetailInfoRepository
                     .findFirstByUserIdAndStatus(userData.getId(), Status.ACTIVE)
-                    .orElseThrow(() -> new EntityNotFoundException("User detail info not found for user ID: " + userData.getId()));
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "User detail info not found for user ID: " + userData.getId()));
 
             userDetailInfoResponseDto = new UserDetailInfoResponseDto(
                     userDetailInfo.getWeight(),
                     userDetailInfo.getHeight(),
                     userDetailInfo.getGoal(),
                     userDetailInfo.getExperience(),
-                    userDetailInfo.getSpecialization()
-            );
+                    userDetailInfo.getSpecialization());
 
         }
 
@@ -215,8 +208,7 @@ public class UserServiceImpl implements UserService {
                 token,
                 refreshToken,
                 profileResponse,
-                userDetailInfoResponseDto
-        );
+                userDetailInfoResponseDto);
 
         return ApiResponse.builder()
                 .success(1)
@@ -225,9 +217,6 @@ public class UserServiceImpl implements UserService {
                 .message("Account Login successfully.")
                 .build();
     }
-
-
-
 
     @Override
     @Transactional
@@ -247,8 +236,7 @@ public class UserServiceImpl implements UserService {
 
         data = Map.of(
                 "userName", email,
-                "refreshToken", refreshToken
-        );
+                "refreshToken", refreshToken);
 
         return ApiResponse.builder()
                 .success(1)

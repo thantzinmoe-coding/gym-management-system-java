@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mysql://avnadmin:${AIVEN_DB_PASSWORD}@mysql-319dcd54-tmoe8123-37cd.b.aivencloud.com:27965/gym_management_system_db?ssl-mode=REQUIRED
-    username: avnadmin
-    password: ${AIVEN_DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/gym_management_system_db?createDatabaseIfNotExist=true
+    username: myuser
+    password: root123
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       # Start with only 1 or 2 connections to speed up the boot
@@ -29,11 +29,11 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
+      host: localhost
+      port: 6379
+      password:
       ssl:
-        enabled: true
+        enabled: false
 
   mail:
     host: smtp.gmail.com
