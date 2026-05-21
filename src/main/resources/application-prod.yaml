@@ -3,6 +3,31 @@ spring:
     url: ${AIVEN_DB_URL}
     username: ${AIVEN_DB_USERNAME}
     password: ${AIVEN_DB_PASSWORD}
+    hikari:
+      # Limit connection pool to reduce memory usage (~1-2MB per connection)
+      minimum-idle: 2
+      maximum-pool-size: 5
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 900000
+
+  # Lazy-load beans to reduce startup memory spike
+  main:
+    lazy-initialization: true
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # Disable SQL logging in production to save memory on log buffers
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        # Batch fetching to reduce N+1 queries (fewer objects in memory at once)
+        default_batch_fetch_size: 16
+        # Use second-level cache conservatively
+        jdbc:
+          batch_size: 15
 
   data:
     redis:
@@ -11,6 +36,12 @@ spring:
       password: ${REDIS_PASSWORD}
       ssl:
         enabled: ${REDIS_SSL}
+      # Limit Redis connection pool
+      lettuce:
+        pool:
+          max-active: 4
+          max-idle: 2
+          min-idle: 1
 
   mail:
     host: ${SPRING_MAIL_HOST}
@@ -24,5 +55,30 @@ spring:
           starttls:
             enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}
 
+  # Limit file upload sizes to prevent memory exhaustion
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+
+# Limit embedded Tomcat to reduce thread memory usage
+server:
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 5
+    max-connections: 200
+    accept-count: 50
+
 jwt:
   secret: ${JWT_SECRET}
+
+# Reduce logging in production
+logging:
+  level:
+    root: WARN
+    org.java_proj.gym_management_system: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: WARN
+    org.springframework: WARN
