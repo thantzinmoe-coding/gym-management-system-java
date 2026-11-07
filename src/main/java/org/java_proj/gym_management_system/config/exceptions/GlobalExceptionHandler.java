@@ -1,6 +1,6 @@
 package org.java_proj.gym_management_system.config.exceptions;
 
-import java.nio.file.AccessDeniedException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -249,6 +250,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      * @param request the current HTTP request.
      * @return a ResponseEntity containing the standardized ApiResponse.
      */
+    /**
+     * Wrong email/password at login: 401 with a clear message instead of a generic 500.
+     */
+    /** Business-rule refusals (e.g. "already has an active booking"): 409 instead of 500. */
+    @ExceptionHandler({EntityCreationException.class, IllegalStateException.class}) // EntityDeletionException has its own handler above
+    public ResponseEntity<ApiResponse> handleConflict(RuntimeException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), "Request conflicts with the current state.", request);
+    }
+
+    /** Rate limits (too many wrong codes, codes requested too often): 429. */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiResponse> handleTooManyRequests(TooManyRequestsException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), "Too many requests.", request);
+    }
+
+    @ExceptionHandler(org.springframework.security.authentication.BadCredentialsException.class)
+    public ResponseEntity<ApiResponse> handleBadCredentials(
+            org.springframework.security.authentication.BadCredentialsException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid email or password.", "Login failed", request);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), "Access is denied", request);

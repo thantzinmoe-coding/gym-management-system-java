@@ -1,5 +1,6 @@
 package org.java_proj.gym_management_system.features.bookPackage.controller;
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,6 +35,7 @@ import jakarta.validation.constraints.Positive;
 public class BookPackageController {
 
     private final BookPackageService bookPackageService;
+    private final CurrentUser currentUser;
 
     @Operation(
             summary = "Book a gym package",
@@ -114,6 +116,7 @@ public class BookPackageController {
     public ResponseEntity<org.java_proj.gym_management_system.config.response.dto.ApiResponse> bookPackage(
             @Parameter(description = "Booking request details", required = true)
             @Valid @RequestBody BookPackageRequest request) {
+        currentUser.requireSelfOrAdmin(request.getMemberID()); // members book for themselves only
 
         org.java_proj.gym_management_system.config.response.dto.ApiResponse response = bookPackageService.bookPackage(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -204,6 +207,7 @@ public class BookPackageController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             @PathVariable("id") Long memberId, HttpServletRequest request)
     {
+        currentUser.requireSelfOrAdmin(memberId);
         Pageable pageable = PageRequest.of(page, size);
         final PaginatedApiResponse<BookPackageDetailResponseDto> response = this.bookPackageService.getBookingDetail(memberId, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);
@@ -259,6 +263,7 @@ public class BookPackageController {
     @GetMapping("/trainer/{trainerId}/user-count")
     public ResponseEntity<Long> getUserCountByTrainer(
             @PathVariable Long trainerId) {
+        currentUser.requireSelfOrAdmin(trainerId);
         Long count = bookPackageService.getUserCountByTrainer(trainerId);
         return ResponseEntity.ok(count);
     }
@@ -278,6 +283,7 @@ public class BookPackageController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request
     ) {
+        currentUser.requireSelfOrAdmin(trainerId);
         Pageable pageable = PageRequest.of(page, size);
         PaginatedApiResponse<BookedUsersDetailResponse> response = this.bookPackageService.getActiveUsersByTrainer(trainerId, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);

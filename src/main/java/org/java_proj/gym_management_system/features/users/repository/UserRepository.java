@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -41,6 +43,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.role.name = :role AND u.status = :status")
     Page<User> findByRoleAndStatus(@Param("role") String role, @Param("status") Status status, Pageable pageable);
+
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profile LEFT JOIN FETCH u.role WHERE u.role.name = :role AND u.status = :status")
+    List<User> findAllActiveByRoleWithProfile(@Param("role") String role, @Param("status") Status status);
+
+    @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.profile LEFT JOIN FETCH u.role WHERE u.id IN :ids")
+    List<User> findAllByIdInWithProfile(@Param("ids") Collection<Long> ids);
 
     @Query("SELECT u FROM User u WHERE u.role.name = :trainer")
     Page<User> findByRoleName(String trainer, Pageable pageable);

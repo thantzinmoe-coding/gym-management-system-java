@@ -201,8 +201,15 @@ public class GymPackageServiceImpl implements GymPackageService {
         throw new IllegalStateException("Overdue packages are auto-deleted, cannot delete manually.");
     }
 
+    // Off by default: deleting expired packages also deletes their bookings (booking history).
+    @org.springframework.beans.factory.annotation.Value("${gym.packages.auto-delete-expired:false}")
+    private boolean deleteExpiredEnabled;
+
     @Scheduled(cron = "0 0 0 * * ?") // every midnight
     public void autoDeleteExpiredPackages() {
+        if (!deleteExpiredEnabled) {
+            return; // e.g. the local Docker demo keeps old packages (and their bookings) for analytics
+        }
         LocalDate today = LocalDate.now();
         List<GymPackage> expiredPackages = gymPackageRepository.findAll()
                 .stream()
@@ -215,6 +222,12 @@ public class GymPackageServiceImpl implements GymPackageService {
         }
     }
 
+    /** Catch up on start-up, e.g. when the server was down at midnight. */
+    @org.springframework.context.event.EventListener(org.springframework.boot.context.event.ApplicationReadyEvent.class)
+    public void activatePackagesOnStartup() {
+        autoActivatePackages();
+    }
+
     @Scheduled(cron = "0 0 0 * * ?") // every midnight
     @Transactional
     public void autoActivatePackages() {
@@ -222,8 +235,9 @@ public class GymPackageServiceImpl implements GymPackageService {
 
         List<GymPackage> packagesToActivate = gymPackageRepository.findAll()
                 .stream()
+                // start date reached (not just "today", so a missed midnight run catches up)
                 .filter(pkg -> pkg.getStartDate() != null
-                        && pkg.getStartDate().isEqual(today)
+                        && !pkg.getStartDate().isAfter(today)
                         && pkg.getStatus() != Status.ACTIVE)
                 .toList();
 

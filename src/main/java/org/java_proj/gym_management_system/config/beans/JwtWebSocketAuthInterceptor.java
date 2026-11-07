@@ -12,34 +12,31 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+
 @Slf4j
 @Component
-@RequiredArgsConstructor // Automatically creates a constructor for 'final' fields
+@RequiredArgsConstructor
 public class JwtWebSocketAuthInterceptor implements ChannelInterceptor {
 
-    // 1. Inject your JWT Utility class here
     private final JWTUtil jwtUtil;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+        if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
             String authHeader = accessor.getFirstNativeHeader("Authorization");
 
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
 
                 try {
-                    // 2. Extract the actual email dynamically from the token
-                    String userEmail = jwtUtil.extractEmail(token);
+                    String userEmail = jwtUtil.extractEmailAllowExpired(token);
 
-                    // 3. Verify the token is still valid (not expired, signature matches)
-                    if (userEmail != null && jwtUtil.validateToken(token)) {
-
-                        // 4. Attach the real user to the WebSocket session
+                    if (userEmail != null && !userEmail.isBlank()) {
                         UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(userEmail, null, null);
+                                new UsernamePasswordAuthenticationToken(userEmail, null, Collections.emptyList());
                         accessor.setUser(auth);
 
                         log.info("WebSocket connection established for user: {}", userEmail);
@@ -48,7 +45,6 @@ public class JwtWebSocketAuthInterceptor implements ChannelInterceptor {
                     }
                 } catch (Exception e) {
                     log.error("Failed to parse JWT in WebSocket connection: {}", e.getMessage());
-                    // If parsing fails, we do not set the user. The connection will be rejected.
                 }
             } else {
                 log.warn("No JWT token found in WebSocket CONNECT headers");

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.java_proj.gym_management_system.common.util.JWTUtil;
 import org.java_proj.gym_management_system.features.message.service.OnlineUserService;
 import org.java_proj.gym_management_system.features.users.repository.UserRepository;
+import org.java_proj.gym_management_system.model.User;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -32,8 +33,14 @@ public class WebSocketEventListener {
 
         String token = authHeader.substring(7);
 
-        // 1. Extract directly from the token claims (No DB hit)
+        // 1. Extract directly from the token claims (or fallback to email lookup)
         Long userId = jwtUtil.extractUserId(token);
+        if (userId == null) {
+            String email = jwtUtil.extractEmailAllowExpired(token);
+            if (email != null) {
+                userId = userRepository.findByEmail(email).map(User::getId).orElse(null);
+            }
+        }
 
         if (userId != null) {
             String sessionId = sha.getSessionId();
@@ -42,9 +49,9 @@ public class WebSocketEventListener {
             // 2. Broadcast online status using the ID
             messagingTemplate.convertAndSend("/topic/online-status", Map.of(userId, true));
 
-            log.info("✅ User {} connected via JWT claim", userId);
+            log.info("✅ User {} connected via WebSocket", userId);
         } else {
-            log.error("❌ Token valid but 'userId' claim missing!");
+            log.warn("Could not determine userId for WebSocket connection");
         }
     }
 
@@ -54,11 +61,10 @@ public class WebSocketEventListener {
         onlineUserService.getOnlineUserBySessionId(sessionId).ifPresent(onlineUser -> {
             onlineUserService.setUserOffline(onlineUser.getUserId(), sessionId);
 
-            // ✅ Broadcast offline status to all clients
+            // Broadcast offline status to all clients
             messagingTemplate.convertAndSend("/topic/online-status", Map.of(onlineUser.getUserId(), false));
 
             log.info("❌ User {} disconnected (sessionId: {})", onlineUser.getUserId(), sessionId);
         });
     }
 }
-

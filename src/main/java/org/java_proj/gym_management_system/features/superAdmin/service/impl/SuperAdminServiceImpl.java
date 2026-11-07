@@ -69,7 +69,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
     @Override
     public PaginatedApiResponse<SuperAdminDashBoardResponse> getAllUsersPaginated(
-            String keyword, String role, String status, Pageable pageable) {
+            String keyword, String role, String status, Pageable pageable)  {
 
         // Convert status string to enum if provided
         Status dbStatus = null;
@@ -88,20 +88,20 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .filter(user -> user.getProfile() != null)
                 .map(user -> SuperAdminDashBoardResponse.builder()
                         .id(user.getId())
-                        .name(user.getProfile().getName())
+                        .name((user.getProfile() != null ? user.getProfile().getName() : null))
                         .email(user.getEmail())
-                        .phone(user.getProfile().getPhone())
-                        .address(user.getProfile().getAddress())
+                        .phone((user.getProfile() != null ? user.getProfile().getPhone() : null))
+                        .address((user.getProfile() != null ? user.getProfile().getAddress() : null))
                         .role(user.getRole().getName()) // Add role to response
-                        .nrc(user.getProfile().getNrc())
-                        .dob(String.valueOf(user.getProfile().getDob()))
-                        .gender(user.getProfile().getGender())
-                        .weight(user.getUserDetailInfo().getWeight())
-                        .height(user.getUserDetailInfo().getHeight())
-                        .goal(user.getUserDetailInfo().getGoal())
-                        .specialization(user.getUserDetailInfo().getSpecialization())
-                        .experience(user.getUserDetailInfo().getExperience())
-                        .avatarUrl(user.getProfile().getProfilePic())
+                        .nrc((user.getProfile() != null ? user.getProfile().getNrc() : null))
+                        .dob(String.valueOf((user.getProfile() != null ? user.getProfile().getDob() : null)))
+                        .gender((user.getProfile() != null ? user.getProfile().getGender() : null))
+                        .weight((user.getUserDetailInfo() != null ? user.getUserDetailInfo().getWeight() : null))
+                        .height((user.getUserDetailInfo() != null ? user.getUserDetailInfo().getHeight() : null))
+                        .goal((user.getUserDetailInfo() != null ? user.getUserDetailInfo().getGoal() : null))
+                        .specialization((user.getUserDetailInfo() != null ? user.getUserDetailInfo().getSpecialization() : null))
+                        .experience((user.getUserDetailInfo() != null ? user.getUserDetailInfo().getExperience() : null))
+                        .avatarUrl((user.getProfile() != null ? user.getProfile().getProfilePic() : null))
                         .status(user.getStatus())
                         .build()
                 ).toList();
@@ -121,6 +121,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
     }
 
     @Override
+    @Transactional // open-in-view is off: the email below reads lazy package/trainer data
     public ApiResponse acceptBooking(Long bookingId) {
         Booking booking = (Booking) this.bookPackageRepository.findByIdAndMemberStatus(bookingId, MemberStatus.PENDING)
                 .orElseThrow(() -> new EntityNotFoundException("No pending booking package found with id "+ bookingId));
@@ -141,7 +142,11 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         String packageName = booking.getGymPackage().getName();
         String startDate = booking.getGymPackage().getStartDate().toString();   // assuming you store this
         String duration = booking.getGymPackage().getDuration();
-        String trainerName = booking.getGymPackage().getAssignedGymPackage().getTrainer().getProfile().getName() != null ?booking.getGymPackage().getAssignedGymPackage().getTrainer().getProfile().getName() : null;
+        String trainerName = java.util.Optional.ofNullable(booking.getGymPackage().getAssignedGymPackage())
+                .map(AssignedGymPackage::getTrainer)
+                .map(User::getProfile)
+                .map(Profile::getName)
+                .orElse(null);
 
 
         serverUtil.sendBookingAcceptEmail(email, packageName, startDate, duration, trainerName);
@@ -158,7 +163,9 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         Booking booking = bookPackageRepository.findById(bookingId)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found"));
 
-        bookPackageRepository.delete(booking);
+        // Keep the record as CANCELLED instead of deleting it (booking history).
+        booking.setMemberStatus(MemberStatus.CANCELLED);
+        bookPackageRepository.save(booking);
 
         serverUtil.sendBookingRejectEmail(
                 request.getEmail(),
@@ -211,7 +218,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
 
         MangeUserResponseDto dto = new MangeUserResponseDto();
         dto.setTrainerId(trainer.getId());
-        dto.setTrainerName(trainer.getProfile().getName());
+        dto.setTrainerName((trainer.getProfile() != null ? trainer.getProfile().getName() : null));
         dto.setTrainerStatus(trainer.getStatus());
         dto.setAcceptedTime(trainer.getUpdatedAt().toString());
 
@@ -229,7 +236,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         trainer.setStatus(Status.ACTIVE);
         userRepository.save(trainer);
 
-        String name = trainer.getProfile().getName();
+        String name = (trainer.getProfile() != null ? trainer.getProfile().getName() : null);
 
         serverUtil.sendTrainerAcceptEmail(trainer.getEmail(), name);
 
@@ -245,7 +252,7 @@ public class SuperAdminServiceImpl implements SuperAdminService {
         trainer.setStatus(Status.INACTIVE);
         userRepository.save(trainer);
         // send rejection email
-        serverUtil.sendRejectEmail(trainer.getEmail(), trainer.getProfile().getName());
+        serverUtil.sendRejectEmail(trainer.getEmail(), (trainer.getProfile() != null ? trainer.getProfile().getName() : null));
 
         return ApiResponse.builder()
                 .success(1).code(HttpStatus.OK.value())
@@ -261,10 +268,10 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .map(trainer -> {
                     TrainerResponseDto dto = modelMapper.map(trainer, TrainerResponseDto.class);
                     dto.setStatus(trainer.getStatus().toString());
-                    dto.setName(trainer.getProfile().getName());
-                    dto.setPhone(trainer.getProfile().getPhone());
-                    dto.setExperience(trainer.getUserDetailInfo().getExperience());
-                    dto.setAvatarUrl(trainer.getProfile().getProfilePic());
+                    dto.setName((trainer.getProfile() != null ? trainer.getProfile().getName() : null));
+                    dto.setPhone((trainer.getProfile() != null ? trainer.getProfile().getPhone() : null));
+                    dto.setExperience((trainer.getUserDetailInfo() != null ? trainer.getUserDetailInfo().getExperience() : null));
+                    dto.setAvatarUrl((trainer.getProfile() != null ? trainer.getProfile().getProfilePic() : null));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -292,10 +299,10 @@ public class SuperAdminServiceImpl implements SuperAdminService {
                 .map(trainer -> {
                     TrainerResponseDto dto = modelMapper.map(trainer, TrainerResponseDto.class);
                     dto.setStatus(trainer.getStatus().toString());
-                    dto.setName(trainer.getProfile().getName());
-                    dto.setPhone(trainer.getProfile().getPhone());
-                    dto.setSpecialization(trainer.getUserDetailInfo().getSpecialization());
-                    dto.setAvatarUrl(trainer.getProfile().getProfilePic());
+                    dto.setName((trainer.getProfile() != null ? trainer.getProfile().getName() : null));
+                    dto.setPhone((trainer.getProfile() != null ? trainer.getProfile().getPhone() : null));
+                    dto.setSpecialization((trainer.getUserDetailInfo() != null ? trainer.getUserDetailInfo().getSpecialization() : null));
+                    dto.setAvatarUrl((trainer.getProfile() != null ? trainer.getProfile().getProfilePic() : null));
                     return dto;
                 })
                 .collect(Collectors.toList());

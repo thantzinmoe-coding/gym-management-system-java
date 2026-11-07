@@ -1,0 +1,62 @@
+# Profile for the local Docker Compose stack (see ../docker-compose.yml).
+# Every value comes from the environment so no secret is stored in this file.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://mysql:3306/gym_management_system_db}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+
+  # The MongoDB starter is on the classpath but nothing uses it yet; skip it locally.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
+
+  jpa:
+    hibernate:
+      # No migrations exist for the gym schema, so let Hibernate create it.
+      ddl-auto: update
+    show-sql: false
+
+  session:
+    store-type: redis
+    redis:
+      namespace: gym:session
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+
+  # Mailpit catches every email (verification codes, password resets) at http://localhost:8025
+  mail:
+    host: ${SPRING_MAIL_HOST:mailpit}
+    port: ${SPRING_MAIL_PORT:1025}
+    username: ${SMTP_USERNAME:no-reply@gym.local}
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_SECRET}

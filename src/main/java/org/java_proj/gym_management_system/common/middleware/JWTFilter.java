@@ -34,7 +34,16 @@ public class JWTFilter extends OncePerRequestFilter {
             return;
         }
         token =authHeader.substring(7);
-        email=jwtUtil.extractEmail(token);
+        try {
+            email=jwtUtil.extractEmail(token);
+        } catch (io.jsonwebtoken.JwtException | IllegalArgumentException e) {
+            // Expired or invalid token: continue unauthenticated. Public routes (login,
+            // register, refresh) still work; protected routes are rejected by Spring Security.
+            // Throwing here used to make even the login request fail with 403 whenever the
+            // browser still held an expired token cookie.
+            filterChain.doFilter(request,response);
+            return;
+        }
 
         if (email !=null && SecurityContextHolder.getContext().getAuthentication()==null) {
             UserDetails userDetails = userDetailService.loadUserByUsername(email);

@@ -1,5 +1,6 @@
 package org.java_proj.gym_management_system.features.profile.controller;
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +30,7 @@ import java.util.Map;
 @Tag(name = "Profile API", description = "Endpoints for managing profile")
 public class ProfileController {
     private final ProfileService profileService;
+    private final CurrentUser currentUser;
 
 
 
@@ -148,6 +150,7 @@ public class ProfileController {
             @PathVariable("userId") final Long userId,
             HttpServletRequest request
     ) {
+        currentUser.requireSelfOrAdmin(userId);
         try {
             ApiResponse response = this.profileService.softDeleteProfile(userId);
             return ResponseUtils.buildResponse(request, response);
@@ -240,6 +243,7 @@ public class ProfileController {
             @Valid @RequestBody ProfileRequestDto profileRequest,
             HttpServletRequest request
     ) {
+        currentUser.requireSelfOrAdmin(userId);
         try {
             ApiResponse response = this.profileService.updateProfile(userId, profileRequest);
             return ResponseUtils.buildResponse(request, response);
@@ -299,6 +303,7 @@ public class ProfileController {
             @Parameter(hidden = true)
             @RequestParam(value = "file",required = false) final MultipartFile file
     ) {
+        currentUser.requireSelfOrAdmin(userId);
         try {
             final String fileUrl = this.profileService.uploadProfilePicture(userId, file);
             return ResponseEntity.ok(Map.of("url", fileUrl));
@@ -367,6 +372,14 @@ public class ProfileController {
     ) {
         try {
             ApiResponse response = this.profileService.getProfileById(id);
+            // Other users (e.g. a notification's sender) only see the public card.
+            if (!currentUser.isSelfOrAdmin(id)
+                    && response.getData() instanceof org.java_proj.gym_management_system.features.profile.dto.response.ProfileResponseDto dto) {
+                dto.setNrc(null);
+                dto.setPhone(null);
+                dto.setAddress(null);
+                dto.setDob(null);
+            }
             return ResponseUtils.buildResponse(request, response);
         } catch (Exception e) {
             return ResponseUtils.buildResponse(request,

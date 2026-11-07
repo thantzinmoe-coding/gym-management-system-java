@@ -5,6 +5,7 @@ import org.java_proj.gym_management_system.features.message.service.OnlineUserSe
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -56,9 +57,13 @@ public class OnlineStatusController {
     @PostMapping("/check")
     public ResponseEntity<Map<Long, Boolean>> checkUsersOnlineStatus(
             @RequestBody List<Long> userIds) {
-        List<Long> onlineUsers = onlineUserService.getOnlineUsers(userIds);
+        if (userIds == null || userIds.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyMap());
+        }
+        List<Long> distinctIds = userIds.stream().distinct().toList();
+        List<Long> onlineUsers = onlineUserService.getOnlineUsers(distinctIds);
 
-        Map<Long, Boolean> statusMap = userIds.stream()
+        Map<Long, Boolean> statusMap = distinctIds.stream()
                 .collect(Collectors.toMap(
                         userId -> userId,
                         onlineUsers::contains
@@ -90,6 +95,4 @@ public class OnlineStatusController {
         return ResponseEntity.ok(Map.of("online", isOnline));
     }
 
-
 }
-

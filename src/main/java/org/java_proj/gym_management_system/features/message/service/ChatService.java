@@ -10,4 +10,5 @@ public interface ChatService {
     ChatMessageResponse saveAndSendMessage(String senderEmail, ChatMessageRequest request);
     List<ChatMessageResponse> getHistory(Long userId, Long otherUserId);
     List<ChatRoomResponse> getUserRooms(Long userId);
+    List<ChatRoomResponse> getChatContacts(Long userId, String targetRole);
 }

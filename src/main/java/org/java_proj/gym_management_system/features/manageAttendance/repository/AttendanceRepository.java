@@ -13,6 +13,14 @@ import java.util.List;
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByUser(User user);
 
+    /** Admin list: one type, recent window, newest first; user + profile loaded in the same query. */
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "user.profile"})
+    List<Attendance> findByAttendanceTypeAndDateGreaterThanEqualOrderByDateDescIdDesc(
+            org.java_proj.gym_management_system.common.constant.AttendanceType type, java.time.LocalDate from);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"user", "user.profile"})
+    List<Attendance> findByDateGreaterThanEqualOrderByDateDescIdDesc(java.time.LocalDate from);
+
     @Query("""
        SELECT COALESCE(SUM(a.hoursWorked), 0)
        FROM Attendance a

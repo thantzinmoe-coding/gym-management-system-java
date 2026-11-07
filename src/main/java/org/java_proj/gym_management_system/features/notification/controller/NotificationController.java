@@ -1,5 +1,6 @@
 package org.java_proj.gym_management_system.features.notification.controller;
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.java_proj.gym_management_system.config.response.dto.ApiResponse;
@@ -25,6 +26,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final NotificationQueryService queryService;
+    private final CurrentUser currentUser;
 
     @PostMapping("/send")
     @Operation(summary = "Send a new notification", description = "Allows an admin to send a new notification to all users.")
@@ -44,6 +46,7 @@ public class NotificationController {
     @Operation(summary = "Get a user's notifications",
             description = "Fetches all notifications (personal and broadcast) for a given user.")
     public ResponseEntity<List<UserNotificationDTO>> getNotifications(@PathVariable("userId") Long userId) {
+        currentUser.requireSelfOrAdmin(userId);
         List<UserNotificationDTO> notifications = queryService.getNotificationsForUser(userId);
         return ResponseEntity.ok(notifications);
     }
@@ -64,6 +67,7 @@ public class NotificationController {
 
     @GetMapping("/unread/{userId}")
     public ResponseEntity<List<UserNotificationDTO>> getUnreadNotifications(@PathVariable Long userId) {
+        currentUser.requireSelfOrAdmin(userId);
         List<UserNotificationDTO> notifications = queryService.getNotificationsForUser(userId);
         return ResponseEntity.ok(notifications);
     }
@@ -71,6 +75,7 @@ public class NotificationController {
 
     @PostMapping("/{userId}/read-all")
     public ResponseEntity<ApiResponse> markAllAsRead(@PathVariable Long userId) {
+        currentUser.requireSelfOrAdmin(userId);
         return ResponseEntity.ok(notificationService.markAllAsRead(userId));
     }
 

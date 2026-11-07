@@ -1,81 +1,63 @@
 package org.java_proj.gym_management_system.features.forgotPassword.service.impl;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.java_proj.gym_management_system.common.service.EmailService;
+import org.java_proj.gym_management_system.common.util.OtpGuard;
 import org.java_proj.gym_management_system.common.util.ServerUtil;
 import org.java_proj.gym_management_system.features.forgotPassword.service.ForgotPasswordService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.java_proj.gym_management_system.features.users.repository.UserRepository;
+import org.java_proj.gym_management_system.features.users.repository.UserTokenRepository;
+import org.java_proj.gym_management_system.model.User;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
-    private final JavaMailSender javaMailSender;
+    private static final String PREFIX = "forgot-password:";
+    private static final long EXPIRATION_MINUTES = 15;
+    private static final int MIN_PASSWORD_LENGTH = 8;
 
     private final ServerUtil serverUtil;
-    private final StringRedisTemplate redisTemplate;
-
-    private static final long EXPIRATION_MINUTES = 15;
-    private final EmailService emailService;
-
-    @Value("${spring.mail.username}")
-    private String fromMail;
-
+    private final OtpGuard otpGuard;
+    private final UserRepository userRepository;
+    private final UserTokenRepository userTokenRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void sendResetCode(String email) {
-        String resetCode = serverUtil.generateNumericCode(6);
-        redisTemplate.opsForValue().set("forgot-password:" + email, resetCode, EXPIRATION_MINUTES, TimeUnit.MINUTES);
-
-        try {
-            sendEmail(email , resetCode);
-        } catch (MessagingException | IOException e){
-//            log.warn("Email likely sent but timed out waiting for SMTP response: {}", email, e);
-//            log.error("Email sending failed to {}", email, e);
-//            throw new RuntimeException("Failed to send reset code.");
+        otpGuard.checkResendCooldown(PREFIX, email);
+        // Same response whether or not the account exists, so this can't be used to
+        // discover which emails are registered.
+        if (userRepository.existsByEmail(email)) {
+            serverUtil.sendCodeToEmail(email, EXPIRATION_MINUTES, "resetMail", PREFIX);
+        } else {
+            log.info("Password reset requested for an unknown email");
         }
-
-    }
-
-    private void sendEmail(String email, String resetCode) throws MessagingException , IOException{
-        String userName = email.split("@")[0];
-        String htmlTemplate = serverUtil.loadTemplate("templates/mailTemplates/resetMail.html");
-        String htmlContent =htmlTemplate
-                .replace("{{username}}" , userName)
-                .replace("{{code}}" , resetCode);
-
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message , true , "UTF-8");
-
-        helper.setTo(email);
-        helper.setFrom(fromMail);
-        helper.setSubject("Your FoodOrderingSystem Password Reset Code");
-
-        helper.setText(htmlContent , true);
-        helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
-
-//        javaMailSender.send(message);
-        this.emailService.sendEmail(email, "Your FoodOrderingSystem Password Reset Code", htmlContent);
     }
 
     @Override
     public boolean verifyResetCode(String email, long code) {
-        String key = "forgot-password:" + email;
-        String storedCode = redisTemplate.opsForValue().get(key);
-        boolean valid = storedCode != null && storedCode.equals(String.valueOf(code));
-        if (valid) redisTemplate.delete(key);
-        return valid;
+        return otpGuard.verify(PREFIX, email, code, false);
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String email, long code, String newPassword) {
+        if (newPassword == null || newPassword.length() < MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException("The new password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
+        }
+        if (!otpGuard.verify(PREFIX, email, code, true)) {
+            throw new IllegalArgumentException("Invalid or expired code.");
+        }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired code."));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        // Revoke stored refresh tokens so sessions opened with the old password end.
+        userTokenRepository.deleteByUsername(email);
     }
 }

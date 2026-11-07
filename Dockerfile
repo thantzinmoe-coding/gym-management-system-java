@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.8.5-openjdk-17 AS build
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY pom.xml .
 # Download dependencies first (cached layer)
@@ -14,18 +14,24 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # JVM memory tuning for Railway (512MB plan)
-# -XX:MaxRAMPercentage=75 => use at most 75% of container memory for heap
-# -XX:+UseG1GC => G1 garbage collector, better for constrained memory
-# -XX:+UseStringDeduplication => deduplicate identical strings to save heap
-# -Xss512k => reduce thread stack size from default 1MB to 512KB
-# -XX:MaxMetaspaceSize=128m => cap metaspace to prevent unbounded growth
+# -XX:MaxRAMPercentage=65 => leave more room for metaspace, threads, native mem
+# -XX:+UseSerialGC => lowest memory footprint GC for small containers
+# -Xss256k => reduce thread stack size (256KB is safe for most web apps)
+# -XX:MaxMetaspaceSize => class metadata cap. 96m fits the Railway plan but this app (JPA +
+#    Swagger + WebSocket) can exceed it and die with OutOfMemoryError: Metaspace, so it is
+#    configurable: docker-compose.yml sets MAX_METASPACE=256m for local use.
+# -XX:ReservedCodeCacheSize=64m => cap JIT code cache
 # -XX:+ExitOnOutOfMemoryError => restart container on OOM instead of hanging
-ENTRYPOINT ["java", \
-  "-XX:MaxRAMPercentage=75.0", \
-  "-XX:+UseG1GC", \
-  "-XX:+UseStringDeduplication", \
-  "-Xss512k", \
-  "-XX:MaxMetaspaceSize=128m", \
-  "-XX:+ExitOnOutOfMemoryError", \
-  "-Djava.security.egd=file:/dev/./urandom", \
-  "-jar", "app.jar"]
+# -XX:+TieredCompilation -XX:TieredStopAtLevel=1 => C1-only, saves ~50MB native
+ENV MAX_METASPACE=96m
+ENTRYPOINT ["sh", "-c", "exec java \
+  -XX:MaxRAMPercentage=65.0 \
+  -XX:+UseSerialGC \
+  -Xss256k \
+  -XX:MaxMetaspaceSize=${MAX_METASPACE} \
+  -XX:ReservedCodeCacheSize=64m \
+  -XX:+TieredCompilation \
+  -XX:TieredStopAtLevel=1 \
+  -XX:+ExitOnOutOfMemoryError \
+  -Djava.security.egd=file:/dev/./urandom \
+  -jar app.jar"]

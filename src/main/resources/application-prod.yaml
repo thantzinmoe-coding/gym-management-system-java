@@ -17,7 +17,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      # "validate" refuses to start when the schema does not match the entities. A brand-new,
+      # empty database has no tables: deploy once with DDL_AUTO=update to create them, then
+      # remove the variable so it goes back to validate.
+      ddl-auto: ${DDL_AUTO:validate}
     # Disable SQL logging in production to save memory on log buffers
     show-sql: false
     properties:
@@ -28,6 +31,13 @@ spring:
         # Use second-level cache conservatively
         jdbc:
           batch_size: 15
+
+  # Explicit session config to avoid silent auto-config issues
+  session:
+    store-type: redis
+    redis:
+      flush-mode: on_save
+      namespace: gym:session
 
   data:
     redis:
@@ -62,14 +72,15 @@ spring:
       max-request-size: 10MB
 
 
-# Limit embedded Tomcat to reduce thread memory usage
+# Bind to Railway's dynamic PORT (defaults to 8080 if not set)
 server:
+  port: ${PORT:8080}
   tomcat:
     threads:
-      max: 50
-      min-spare: 5
-    max-connections: 200
-    accept-count: 50
+      max: 25
+      min-spare: 2
+    max-connections: 100
+    accept-count: 25
 
 jwt:
   secret: ${JWT_SECRET}
@@ -82,3 +93,17 @@ logging:
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql: WARN
     org.springframework: WARN
+
+# API docs are public routes: keep them off in production unless you set SWAGGER_ENABLED=true.
+springdoc:
+  api-docs:
+    enabled: ${SWAGGER_ENABLED:false}
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+
+# First administrator, created at startup only when no admin exists yet. Set both variables
+# for the first deploy, sign in, then remove them. (Sign-up can never create an admin.)
+app:
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}

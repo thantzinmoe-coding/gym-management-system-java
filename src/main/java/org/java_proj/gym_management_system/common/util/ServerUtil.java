@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +40,7 @@ public class ServerUtil {
 
     @Value("${jwt.secret}")
     private String SecretKey;
-    private final long Access_Token_ExpireTime = 1000 * 60 * 10;
+    private final long Access_Token_ExpireTime = 1000L * 60 * 60 * 24;
 
     public String getSecretKey() {
         return SecretKey;
@@ -54,7 +53,8 @@ public class ServerUtil {
 
     public String generateNumericCode(int length) {
         StringBuilder code = new StringBuilder();
-        Random random = new Random();
+        // Codes guard accounts and password resets: use a cryptographically secure source.
+        java.security.SecureRandom random = new java.security.SecureRandom();
 
         for (int i = 0; i < length; i++) {
             int digit = random.nextInt(10); // generates a digit from 0 to 9
@@ -66,10 +66,12 @@ public class ServerUtil {
     public void sendCodeToEmail(final String email , final long EXPIRATION_MINUTES , final String templateName , final String redisPrefix ) {
         String resetCode = generateNumericCode(6);
         redisTemplate.opsForValue().set(redisPrefix  + email, resetCode, EXPIRATION_MINUTES, TimeUnit.MINUTES);
+        redisTemplate.delete("otp-attempts:" + redisPrefix + email); // a new code gets a fresh attempt budget
         try {
             sendEmail(email , resetCode , templateName);
         } catch (MessagingException | IOException e){
-            e.printStackTrace();
+            redisTemplate.delete(redisPrefix + email);
+            throw new IllegalStateException("Could not send the verification email. Please try again later.", e);
         }
     }
 
@@ -85,13 +87,16 @@ public class ServerUtil {
 
         helper.setTo(email);
         helper.setFrom(fromMail);
-        helper.setSubject("Your GymManagementSystem Password Reset Code");
+        final String subject = "verifyAccountMail".equals(templateName)
+                ? "Your GymManagementSystem verification code"
+                : "Your GymManagementSystem Password Reset Code";
+        helper.setSubject(subject);
 
         helper.setText(htmlContent , true);
         helper.addInline("logoImage", new ClassPathResource("templates/logo/logo.png"));
 
 //        javaMailSender.send(message);
-        this.emailService.sendEmail(email, "Your GymManagementSystem Password Reset Code", htmlContent);
+        this.emailService.sendEmail(email, subject, htmlContent);
     }
 
     public void sendTrainerAcceptEmail(String email, String trainerDashboardLink) {
@@ -201,8 +206,10 @@ public class ServerUtil {
 
     public String loadTemplate(String path) throws IOException {
         ClassPathResource resource = new ClassPathResource(path);
-        byte[] bytes = Files.readAllBytes(resource.getFile().toPath());
-        return new String(bytes, StandardCharsets.UTF_8);
+        // getFile() fails for resources inside the packaged jar (e.g. in Docker); read the stream.
+        try (java.io.InputStream in = resource.getInputStream()) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -231,11 +238,14 @@ public class ServerUtil {
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        long refresh_Token_ExpireTime = 1000 * 60 * 720;
+        long refresh_Token_ExpireTime = 1000L * 60 * 720;
         String roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         claims.put("role", roles);
+        if (userDetails instanceof UserDetail customUserDetail) {
+            claims.put("userId", customUserDetail.getUser().getId());
+        }
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())

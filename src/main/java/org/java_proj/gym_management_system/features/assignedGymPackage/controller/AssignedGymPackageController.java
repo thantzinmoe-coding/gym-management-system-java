@@ -1,5 +1,6 @@
 package org.java_proj.gym_management_system.features.assignedGymPackage.controller;
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Assign Schedule API", description = "Endpoints for assigning schedule for trainer")
 public class AssignedGymPackageController {
     private final AssignedGymPackageService assignedGymPackageService;
+    private final CurrentUser currentUser;
 
     @PostMapping
     @Operation(
@@ -75,6 +77,7 @@ public class AssignedGymPackageController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request
     ) {
+        currentUser.requireSelfOrAdmin(trainerId);
         Pageable pageable = PageRequest.of(page, size);
         PaginatedApiResponse<TrainerPackage> response = assignedGymPackageService.getAssignedPackagesByTrainer(trainerId, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);

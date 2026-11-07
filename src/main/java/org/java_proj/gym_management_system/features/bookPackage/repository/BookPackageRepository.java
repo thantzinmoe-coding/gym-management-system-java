@@ -1,6 +1,6 @@
 package org.java_proj.gym_management_system.features.bookPackage.repository;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.java_proj.gym_management_system.common.constant.MemberStatus;
 import org.java_proj.gym_management_system.features.superAdmin.dto.response.BookingDetailResponse;
 import org.java_proj.gym_management_system.model.Booking;
@@ -44,7 +44,23 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
             "ORDER BY COUNT(b) DESC")
     List<Object[]> findTopBookedGymPackages(@Param("limit") int limit);
 
-    boolean existsByUserIdAndMemberStatus(@NotBlank(message = "Entity ID is required") Long entityId, MemberStatus status);
+    /** Nightly lifecycle: bookings whose package has ended move from one status to another. */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Booking b SET b.memberStatus = :to, b.updatedAt = :now " +
+            "WHERE b.memberStatus = :from AND b.gymPackage.id IN " +
+            "(SELECT p.id FROM GymPackage p WHERE p.endDate < :today)")
+    int moveEndedBookings(@Param("from") MemberStatus from, @Param("to") MemberStatus to,
+                          @Param("today") java.time.LocalDate today, @Param("now") java.time.LocalDateTime now);
+
+    boolean existsByUserIdAndMemberStatus(@NotNull(message = "Entity ID is required") Long entityId, MemberStatus status);
+
+    /**
+     * True when the member has a booking in this status whose package has not ended yet.
+     * A booking is never closed automatically, so without the end-date check a member
+     * whose package finished would stay blocked from booking again.
+     */
+    boolean existsByUserIdAndMemberStatusAndGymPackage_EndDateGreaterThanEqual(
+            Long userId, MemberStatus status, java.time.LocalDate today);
 
     Page<Booking> findByUserId(Long memberId, Pageable pageable);
 
@@ -77,6 +93,7 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
       AND (:keyword IS NULL OR LOWER(m.profile.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
       AND (:memberId IS NULL OR m.id = :memberId)
       AND (:packageId IS NULL OR gp.id = :packageId)
+    ORDER BY b.id DESC
 """)
     Page<BookingDetailResponse> findPendingBookingsWithDetails(
             @Param("status") MemberStatus status,
@@ -91,6 +108,18 @@ public interface BookPackageRepository extends JpaRepository<Booking, Long> {
             "JOIN AssignedGymPackage agp ON agp.gymPackage.id = b.gymPackage.id " +
             "WHERE agp.trainer.id = :trainerId")
     Long countDistinctUsersByTrainer(@Param("trainerId") Long trainerId);
+
+    @Query("SELECT DISTINCT b.user.id " +
+            "FROM Booking b " +
+            "JOIN AssignedGymPackage agp ON agp.gymPackage.id = b.gymPackage.id " +
+            "WHERE agp.trainer.id = :trainerId")
+    List<Long> findDistinctMemberIdsByTrainer(@Param("trainerId") Long trainerId);
+
+    @Query("SELECT DISTINCT agp.trainer.id " +
+            "FROM Booking b " +
+            "JOIN AssignedGymPackage agp ON agp.gymPackage.id = b.gymPackage.id " +
+            "WHERE b.user.id = :memberId")
+    List<Long> findDistinctTrainerIdsByMember(@Param("memberId") Long memberId);
 
 
     @Query("""

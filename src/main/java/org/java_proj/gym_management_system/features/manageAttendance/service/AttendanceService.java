@@ -7,7 +7,7 @@ import org.java_proj.gym_management_system.features.manageAttendance.dto.request
 public interface AttendanceService {
     ApiResponse createAttendance(AttendanceCreateRequest request);
     ApiResponse getAttendance(Long id);
-    ApiResponse listAllAttendances();
+    ApiResponse listAllAttendances(org.java_proj.gym_management_system.common.constant.AttendanceType type, int days);
     ApiResponse getAttendancesByUser(Long userId);
     ApiResponse updateAttendance(Long id, AttendanceUpdateRequest request);
     ApiResponse deleteAttendance(Long id);

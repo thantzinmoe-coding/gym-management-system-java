@@ -1,5 +1,6 @@
 package org.java_proj.gym_management_system.features.userDetailInfo.controller;
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserDetailInfoController {
 
     private final UserDetailInfoService userDetailInfoService;
+    private final CurrentUser currentUser;
     @PostMapping("/{userId}")
     @Operation(
             summary = "Create a new user detail info",
@@ -63,6 +65,7 @@ public class UserDetailInfoController {
             }
     )
     public ResponseEntity<ApiResponse> getUserDetailInfoByUserID(@PathVariable(name="userId") Long id, HttpServletRequest request) {
+        currentUser.requireSelfOrAdmin(id);
         final ApiResponse response = this.userDetailInfoService.getUserDetailInfoByUserId(id);
         return ResponseUtils.buildResponse(request, response);
     }
@@ -82,6 +85,7 @@ public class UserDetailInfoController {
             @Parameter(description = "Page size")
             @RequestParam(value = "size", defaultValue = "20") int size,
             @PathVariable(name="userId") Long userId, HttpServletRequest request) {
+        currentUser.requireSelfOrAdmin(userId);
         Pageable pageable = PageRequest.of(page, size);
         final PaginatedApiResponse<UserDetailInfoResponseDto> response = this.userDetailInfoService.getUserDetailInfos(pageable,userId);
         return ResponseUtils.buildPaginatedResponse(request, response);
@@ -108,6 +112,7 @@ public class UserDetailInfoController {
     public ResponseEntity<ApiResponse> updateUserDetailInfo(@Valid @RequestBody UserDetailInfoCreateRequest bmiUpdateRequestDto,
                                                      @PathVariable(name="id") Long id,
                                                      HttpServletRequest request) {
+        currentUser.requireSelfOrAdmin(id);
         final ApiResponse response = this.userDetailInfoService.updateUserDetailInfo(id, bmiUpdateRequestDto);
         return ResponseUtils.buildResponse(request, response);
 

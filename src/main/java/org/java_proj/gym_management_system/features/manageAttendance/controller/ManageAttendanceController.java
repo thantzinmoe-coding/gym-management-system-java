@@ -1,6 +1,7 @@
 package org.java_proj.gym_management_system.features.manageAttendance.controller;
 
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class ManageAttendanceController {
 
     private final AttendanceService attendanceService;
+    private final CurrentUser currentUser;
 
     @PostMapping
     @Operation(summary = "Record attendance entry")
@@ -47,14 +49,18 @@ public class ManageAttendanceController {
             @PathVariable Long userId,
             HttpServletRequest servletRequest
     ) {
+        currentUser.requireSelfOrAdmin(userId);
         ApiResponse response = attendanceService.getAttendancesByUser(userId);
         return ResponseUtils.buildResponse(servletRequest, response);
     }
 
     @GetMapping
     @Operation(summary = "List all attendance records")
-    public ResponseEntity<ApiResponse> listAllAttendances(HttpServletRequest servletRequest) {
-        ApiResponse response = attendanceService.listAllAttendances();
+    public ResponseEntity<ApiResponse> listAllAttendances(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) org.java_proj.gym_management_system.common.constant.AttendanceType type,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "30") int days,
+            HttpServletRequest servletRequest) {
+        ApiResponse response = attendanceService.listAllAttendances(type, days);
         return ResponseUtils.buildResponse(servletRequest, response);
     }
 

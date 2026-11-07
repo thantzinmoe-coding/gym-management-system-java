@@ -18,7 +18,7 @@ public interface OnlineUserRepository extends JpaRepository<OnlineUser, Long> {
     Optional<OnlineUser> findByUserIdAndSessionId(Long userId, String sessionId);
 
     @Query("SELECT ou FROM OnlineUser ou WHERE ou.userId IN :userIds AND ou.isActive = true")
-    List<OnlineUser> findActiveUsersByIdIn(List<Long> userIds);
+    List<OnlineUser> findActiveUsersByIdIn(@Param("userIds") List<Long> userIds);
 
     @Modifying
     @Query("UPDATE OnlineUser ou SET ou.isActive = false WHERE ou.lastSeen < :cutoffTime")

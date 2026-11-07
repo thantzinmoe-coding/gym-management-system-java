@@ -9,5 +9,9 @@ public class ChatRoomResponse {
     private Long id;
     private Long otherUserId;
     private String otherUserName;
+    private String otherUserEmail;
+    private String otherUserRole;
+    private String avatarUrl;
+    private Boolean isAssigned;
     private ChatMessageResponse lastMessage;
 }

@@ -15,10 +15,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final JwtWebSocketAuthInterceptor jwtInterceptor;
 
+    // Same origins as the REST API's CORS settings
+    @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origins}")
+    private String[] allowedOrigins;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:3001", "https://gym-management-system-react-eight.vercel.app") // React URL
+                .setAllowedOrigins(allowedOrigins) // React URLs
                 .withSockJS();
     }
 

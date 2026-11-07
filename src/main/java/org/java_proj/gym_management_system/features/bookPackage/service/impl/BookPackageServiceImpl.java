@@ -1,5 +1,6 @@
 package org.java_proj.gym_management_system.features.bookPackage.service.impl;
 
+import org.java_proj.gym_management_system.common.util.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.java_proj.gym_management_system.common.constant.MemberStatus;
 import org.java_proj.gym_management_system.common.constant.Status;
@@ -34,6 +35,7 @@ public class BookPackageServiceImpl implements BookPackageService {
     private final BookPackageRepository bookPackageRepository;
     private final UserRepository userRepository;
     private final GymPackageRepository gymPackageRepository;
+    private final CurrentUser currentUser;
     private final ScheduleRepository scheduleRepository;
 
     @Override
@@ -55,11 +57,14 @@ public class BookPackageServiceImpl implements BookPackageService {
             throw new EntityNotFoundException("Schedule not found for gym package with id " + gymPackage.getId());
         }
         // Business Rule: Check if user has any active booking
-        if (bookPackageRepository.existsByUserIdAndMemberStatus(request.getMemberID(), MemberStatus.PENDING)) {
+        final java.time.LocalDate today = java.time.LocalDate.now();
+        if (bookPackageRepository.existsByUserIdAndMemberStatusAndGymPackage_EndDateGreaterThanEqual(
+                request.getMemberID(), MemberStatus.PENDING, today)) {
             throw new EntityCreationException("Member with id " + request.getMemberID() + " already has an pending booking.");
         }
 
-        if (bookPackageRepository.existsByUserIdAndMemberStatus(request.getMemberID(), MemberStatus.ACTIVE)) {
+        if (bookPackageRepository.existsByUserIdAndMemberStatusAndGymPackage_EndDateGreaterThanEqual(
+                request.getMemberID(), MemberStatus.ACTIVE, today)) {
             throw new EntityCreationException("Member with id " + request.getMemberID() + " already has an active booking.");
         }
 
@@ -110,12 +115,15 @@ public class BookPackageServiceImpl implements BookPackageService {
     public ApiResponse cancelPackage(Long id) {
         Booking booking = bookPackageRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id " + id));
+        currentUser.requireSelfOrAdmin(booking.getUser().getId()); // only the member who booked can cancel
 
         if (booking.getMemberStatus() == MemberStatus.ACTIVE) {
             throw new EntityCreationException("Cannot cancel a active booking");
         }
 
-        bookPackageRepository.delete(booking);
+        // Keep the record (history for members, admins and churn analytics) instead of deleting it.
+        booking.setMemberStatus(MemberStatus.CANCELLED);
+        bookPackageRepository.save(booking);
 
         return ApiResponse.builder()
                 .success(1)
@@ -135,6 +143,7 @@ public class BookPackageServiceImpl implements BookPackageService {
     public ApiResponse getBookingById(Long id) {
         Booking booking = this.bookPackageRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Booking not found with id "+ id));
+        currentUser.requireSelfOrAdmin(booking.getUser().getId());
 
         User member = this.userRepository.findById(booking.getUser().getId())
                 .orElseThrow(() -> new EntityNotFoundException("Member not found with id "+ booking.getUser().getId()));
@@ -263,14 +272,19 @@ public class BookPackageServiceImpl implements BookPackageService {
     private BookPackageDetailResponseDto mapToDto(Booking booking) {
 
         GymPackage gymPackage = booking.getGymPackage();
-        Optional<Schedule> schedule = this.scheduleRepository.findById(booking.getGymPackage().getId());
+        // A package has its own schedules; look them up by package, not by the package's id.
+        Optional<Schedule> schedule = this.scheduleRepository.findByGymPackageId(gymPackage.getId()).stream().findFirst();
 
         BookPackageDetailResponseDto dto = new BookPackageDetailResponseDto();
         dto.setBookPackageId(booking.getId());
         dto.setBookingDate(booking.getCreatedAt().toString());
         dto.setMemberStatus(booking.getMemberStatus());
         dto.setGymPackageName(gymPackage.getName());
-        dto.setTrainerName(gymPackage.getAssignedGymPackage().getTrainer().getProfile().getName());
+        dto.setTrainerName(Optional.ofNullable(gymPackage.getAssignedGymPackage())
+                .map(assigned -> assigned.getTrainer())
+                .map(trainer -> trainer.getProfile())
+                .map(profile -> profile.getName())
+                .orElse(null));
         dto.setGymPackageDescription(gymPackage.getDescription());
         dto.setPrice(gymPackage.getPrice());
         dto.setStartDate(gymPackage.getStartDate());

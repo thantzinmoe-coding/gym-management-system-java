@@ -41,7 +41,8 @@ public class GymPackage extends MasterData {
     @OneToMany(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Schedule> schedules = new ArrayList<>();
 
-    @OneToMany(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    // LAZY: listing packages must not load every booking of every package.
+    @OneToMany(mappedBy = "gymPackage", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Booking> booking = new ArrayList<>();
 
     @OneToOne(mappedBy = "gymPackage", cascade = CascadeType.ALL, orphanRemoval = true) // or use OneToMany if you're using versioning/history

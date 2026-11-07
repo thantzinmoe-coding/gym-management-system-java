@@ -88,8 +88,13 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     @Override
-    public ApiResponse listAllAttendances() {
-        List<Attendance> attendances = attendanceRepository.findAll();
+    public ApiResponse listAllAttendances(AttendanceType type, int days) {
+        // Bounded window (default 30 days) instead of the whole table: member check-ins add
+        // thousands of rows, and each row used to trigger extra user/profile queries.
+        final java.time.LocalDate from = java.time.LocalDate.now().minusDays(Math.max(1, Math.min(days, 366)));
+        List<Attendance> attendances = type == null
+                ? attendanceRepository.findByDateGreaterThanEqualOrderByDateDescIdDesc(from)
+                : attendanceRepository.findByAttendanceTypeAndDateGreaterThanEqualOrderByDateDescIdDesc(type, from);
         List<AttendanceResponseDto> dto = attendances.stream()
                 .map(this::mapToDto)
                 .toList();

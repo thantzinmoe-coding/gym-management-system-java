@@ -47,6 +47,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final RoleRepository roleRepository;
+    private final org.java_proj.gym_management_system.common.util.OtpGuard otpGuard;
     private final UserDetailInfoRepository userDetailInfoRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -64,11 +65,20 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public ApiResponse createUser(UserCreateRequest request) {
+        // Sign-up is public, so only member and trainer accounts may be created here.
+        // (Trainers still need admin approval before they can log in.)
+        if (!"MEMBER".equalsIgnoreCase(request.getRole()) && !"TRAINER".equalsIgnoreCase(request.getRole())) {
+            throw new IllegalArgumentException("You can only register as a member or a trainer.");
+        }
         final Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Role not found."));
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EntityCreationException("Email already exists.");
+        }
+        // Only addresses proven by the emailed code may register.
+        if (!otpGuard.isEmailVerified(request.getEmail())) {
+            throw new IllegalArgumentException("Please verify your email with the code we sent before registering.");
         }
 
         User user = new User();
@@ -80,6 +90,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(user);
+        otpGuard.clearEmailVerified(request.getEmail());
 
         UserResponseDto dto = modelMapper.map(user, UserResponseDto.class);
         dto.setRoleName(role.getName());
@@ -108,6 +119,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiResponse verifyEmail(String email) {
+        if (userRepository.existsByEmail(email)) {
+            return new ApiResponse(0, 409, null, new HashMap<>(), "Email already exists.");
+        }
+        otpGuard.checkResendCooldown("verify-account:", email);
         try {
             serverUtil.sendCodeToEmail(email, 15, "verifyAccountMail", "verify-account:");
             return new ApiResponse(1, 200, null, new HashMap<>(), "Verify Email Sent successfully.");
@@ -118,6 +133,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiResponse resendCode(String email) {
+        otpGuard.checkResendCooldown("verify-account:", email);
         try {
             serverUtil.sendCodeToEmail(email, 15, "verifyAccountMail", "verify-account:");
             return new ApiResponse(1, 200, null, new HashMap<>(), "Resend Mail Sent successfully.");
@@ -128,12 +144,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiResponse verifyAccount(long code, String email) {
-        String key = "verify-account:" + email;
-        String storedCode = redisTemplate.opsForValue().get(key);
-        boolean valid = storedCode != null && storedCode.equals(String.valueOf(code));
+        // Wrong guesses are counted; after 5 the code is destroyed (429).
+        boolean valid = otpGuard.verify("verify-account:", email, code, true);
 
         if (valid) {
-            redisTemplate.delete(key);
+            otpGuard.markEmailVerified(email); // sign-up for this address is now allowed
             return new ApiResponse(1, 200, null, new HashMap<>(), "Account verified successfully.");
         } else {
             return new ApiResponse(0, 400, null, new HashMap<>(), "Invalid or expired code.");

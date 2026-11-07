@@ -64,6 +64,13 @@ public class ProfileServiceImpl implements ProfileService {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        // This endpoint is reachable before the first login (sign-up), so it may only
+        // create a profile, never overwrite an existing one.
+        if (this.profileRepository.findByUser_Id(userId).isPresent()) {
+            throw new org.java_proj.gym_management_system.config.exceptions.DuplicateEntityException(
+                    "A profile already exists for this account.");
+        }
+
         Profile profile = modelMapper.map(profileRequest, Profile.class);
 
 

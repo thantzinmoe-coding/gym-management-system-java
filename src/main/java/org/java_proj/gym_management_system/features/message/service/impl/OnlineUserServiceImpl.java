@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,14 +26,16 @@ public class OnlineUserServiceImpl implements OnlineUserService {
 
         if (existingUser.isPresent()) {
             OnlineUser user = existingUser.get();
-            user.setSessionId(sessionId);
+            if (sessionId != null) {
+                user.setSessionId(sessionId);
+            }
             user.setLastSeen(LocalDateTime.now());
             user.setIsActive(true);
             onlineUserRepository.save(user);
         } else {
             OnlineUser newUser = OnlineUser.builder()
                     .userId(userId)
-                    .sessionId(sessionId)
+                    .sessionId(sessionId != null ? sessionId : "rest-session")
                     .lastSeen(LocalDateTime.now())
                     .isActive(true)
                     .build();
@@ -60,6 +63,9 @@ public class OnlineUserServiceImpl implements OnlineUserService {
     }
 
     public List<Long> getOnlineUsers(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyList();
+        }
         return onlineUserRepository.findActiveUsersByIdIn(userIds)
                 .stream()
                 .map(OnlineUser::getUserId)
@@ -69,7 +75,7 @@ public class OnlineUserServiceImpl implements OnlineUserService {
     @Scheduled(fixedRate = 300000)
     @Transactional
     public void cleanupStaleUsers() {
-        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(10);
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(60);
         onlineUserRepository.deactivateStaleUsers(cutoff);
         log.debug("Cleaned up stale online user records");
     }

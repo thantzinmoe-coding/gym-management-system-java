@@ -38,6 +38,12 @@ public class UserDetailInfoServiceImpl implements UserDetailInfoService {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id "+userId));
 
+        // Reachable before the first login (sign-up): create once, never overwrite.
+        if (this.userDetailInfoRepository.findFirstByUserIdAndStatus(userId, Status.ACTIVE).isPresent()) {
+            throw new org.java_proj.gym_management_system.config.exceptions.DuplicateEntityException(
+                    "Details already exist for this account.");
+        }
+
         UserDetailInfo userDetailInfo = new UserDetailInfo();
         userDetailInfo.setWeight(createRequest.getWeight());
         userDetailInfo.setHeight(createRequest.getHeight());

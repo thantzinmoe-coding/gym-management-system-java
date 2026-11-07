@@ -1,6 +1,7 @@
 package org.java_proj.gym_management_system.common.util;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,21 @@ public class JWTUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    /**
+     * Extracts the subject (email) after verifying the token signature, even if the token has expired.
+     * JJWT verifies the HMAC signature before throwing ExpiredJwtException.
+     */
+    public String extractEmailAllowExpired(String token) {
+        try {
+            return extractEmail(token);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().getSubject();
+        } catch (Exception e) {
+            log.error("Failed to extract email from token: {}", e.getMessage());
+            return null;
+        }
     }
 
     public String extractTokenFromRequest(HttpServletRequest request) {
@@ -51,7 +67,7 @@ public class JWTUtil {
     }
 
     /**
-     * ✅ New: Extract all claims from JWT
+     * Extract all claims from JWT
      */
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
@@ -61,15 +77,30 @@ public class JWTUtil {
                 .getBody();
     }
 
+    public Claims extractAllClaimsAllowExpired(String token) {
+        try {
+            return extractAllClaims(token);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims();
+        }
+    }
+
     /**
-     * ✅ New: Extract userId from JWT claim
+     * Extract userId from JWT claim
      */
     public Long extractUserId(String token) {
         try {
-            Claims claims = extractAllClaims(token);
-            return claims.get("userId", Long.class); // ✅ this now works
+            Claims claims = extractAllClaimsAllowExpired(token);
+            Object val = claims.get("userId");
+            if (val instanceof Number number) {
+                return number.longValue();
+            }
+            if (val != null) {
+                return Long.parseLong(val.toString());
+            }
+            return null;
         } catch (Exception e) {
-            log.error("Failed to extract userId from token", e);
+            log.error("Failed to extract userId from token: {}", e.getMessage());
             return null;
         }
     }
