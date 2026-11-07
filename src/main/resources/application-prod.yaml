@@ -43,9 +43,10 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      username: ${REDIS_USER:default} # Redis Cloud uses the "default" ACL user
       password: ${REDIS_PASSWORD}
       ssl:
-        enabled: ${REDIS_SSL}
+        enabled: ${REDIS_SSL:false}
       # Limit Redis connection pool
       lettuce:
         pool:
