@@ -55,16 +55,16 @@ spring:
           min-idle: 1
 
   mail:
-    host: ${SPRING_MAIL_HOST}
-    port: ${SPRING_MAIL_PORT}
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
     username: ${SMTP_USERNAME}
-    password: ${SMTP_PASSWORD}
+    password: ${SMTP_PASSWORD:unused}
     properties:
       mail:
         smtp:
-          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH}
+          auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:true}
           starttls:
-            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE}
+            enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:true}
 
   # Limit file upload sizes to prevent memory exhaustion
   servlet:
@@ -85,6 +85,12 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
+
+# Brevo HTTP API Configuration (bypasses Railway outbound SMTP port blocks)
+brevo:
+  api-key: ${BREVO_API_KEY}
+  sender-email: ${SMTP_USERNAME}
+  sender-name: ${BREVO_SENDER_NAME:Gym Management System}
 
 # Reduce logging in production
 logging:
