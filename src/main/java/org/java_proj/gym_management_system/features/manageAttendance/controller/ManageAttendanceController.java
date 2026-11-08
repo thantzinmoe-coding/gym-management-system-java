@@ -55,13 +55,19 @@ public class ManageAttendanceController {
     }
 
     @GetMapping
-    @Operation(summary = "List all attendance records")
-    public ResponseEntity<ApiResponse> listAllAttendances(
+    @Operation(summary = "List attendance records, newest first, one page at a time")
+    public ResponseEntity<org.java_proj.gym_management_system.config.response.dto.PaginatedApiResponse<
+            org.java_proj.gym_management_system.features.manageAttendance.dto.response.AttendanceResponseDto>> listAllAttendances(
             @org.springframework.web.bind.annotation.RequestParam(required = false) org.java_proj.gym_management_system.common.constant.AttendanceType type,
             @org.springframework.web.bind.annotation.RequestParam(defaultValue = "30") int days,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String keyword,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "20") int size,
             HttpServletRequest servletRequest) {
-        ApiResponse response = attendanceService.listAllAttendances(type, days);
-        return ResponseUtils.buildResponse(servletRequest, response);
+        final org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(Math.max(0, page), Math.max(1, Math.min(size, 100)));
+        return ResponseUtils.buildPaginatedResponse(servletRequest,
+                attendanceService.listAllAttendances(type, days, keyword, pageable));
     }
 
     @PatchMapping("/{id}")

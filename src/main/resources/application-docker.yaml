@@ -60,3 +60,9 @@ springdoc:
 
 jwt:
   secret: ${JWT_SECRET}
+
+# Emails are sent through the Brevo HTTP API (EmailEventListener). Without a key the app still
+# starts, but mails are not delivered; set BREVO_API_KEY (and SMTP_USERNAME as the verified sender).
+brevo:
+  api-key: ${BREVO_API_KEY:not-configured}
+  sender-email: ${SMTP_USERNAME:no-reply@gym.local}

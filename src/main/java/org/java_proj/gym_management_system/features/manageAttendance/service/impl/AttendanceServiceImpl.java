@@ -88,22 +88,28 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     @Override
-    public ApiResponse listAllAttendances(AttendanceType type, int days) {
-        // Bounded window (default 30 days) instead of the whole table: member check-ins add
-        // thousands of rows, and each row used to trigger extra user/profile queries.
+    public org.java_proj.gym_management_system.config.response.dto.PaginatedApiResponse<AttendanceResponseDto> listAllAttendances(
+            AttendanceType type, int days, String keyword, org.springframework.data.domain.Pageable pageable) {
+        // Bounded window (default 30 days), one page at a time: member check-ins add thousands
+        // of rows. The name search runs in the database so it covers every page, not just this one.
         final java.time.LocalDate from = java.time.LocalDate.now().minusDays(Math.max(1, Math.min(days, 366)));
-        List<Attendance> attendances = type == null
-                ? attendanceRepository.findByDateGreaterThanEqualOrderByDateDescIdDesc(from)
-                : attendanceRepository.findByAttendanceTypeAndDateGreaterThanEqualOrderByDateDescIdDesc(type, from);
-        List<AttendanceResponseDto> dto = attendances.stream()
-                .map(this::mapToDto)
-                .toList();
+        final String search = (keyword == null || keyword.isBlank()) ? null : keyword.trim();
+        final org.springframework.data.domain.Page<Attendance> page = type == null
+                ? attendanceRepository.searchAllTypes(from, search, pageable)
+                : attendanceRepository.searchByType(type, from, search, pageable);
 
-        return ApiResponse.builder()
+        final org.java_proj.gym_management_system.config.response.dto.PaginationMeta meta =
+                new org.java_proj.gym_management_system.config.response.dto.PaginationMeta();
+        meta.setTotalItems(page.getTotalElements());
+        meta.setTotalPages(page.getTotalPages());
+        meta.setCurrentPage(pageable.getPageNumber() + 1);
+
+        return org.java_proj.gym_management_system.config.response.dto.PaginatedApiResponse.<AttendanceResponseDto>builder()
                 .success(1)
                 .code(HttpStatus.OK.value())
-                .data(Map.of("attendances", dto))
-                .message("All attendance records fetched.")
+                .message("Attendance records fetched.")
+                .meta(meta)
+                .data(page.getContent().stream().map(this::mapToDto).toList())
                 .build();
     }
 

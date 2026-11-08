@@ -7,7 +7,10 @@ import org.java_proj.gym_management_system.features.manageAttendance.dto.request
 public interface AttendanceService {
     ApiResponse createAttendance(AttendanceCreateRequest request);
     ApiResponse getAttendance(Long id);
-    ApiResponse listAllAttendances(org.java_proj.gym_management_system.common.constant.AttendanceType type, int days);
+    org.java_proj.gym_management_system.config.response.dto.PaginatedApiResponse<
+            org.java_proj.gym_management_system.features.manageAttendance.dto.response.AttendanceResponseDto> listAllAttendances(
+            org.java_proj.gym_management_system.common.constant.AttendanceType type, int days, String keyword,
+            org.springframework.data.domain.Pageable pageable);
     ApiResponse getAttendancesByUser(Long userId);
     ApiResponse updateAttendance(Long id, AttendanceUpdateRequest request);
     ApiResponse deleteAttendance(Long id);
