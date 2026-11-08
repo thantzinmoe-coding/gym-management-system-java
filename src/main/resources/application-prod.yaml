@@ -88,11 +88,6 @@ server:
 jwt:
   secret: ${JWT_SECRET}
 
-# Where uploaded pictures are stored. Mount a Railway volume and set UPLOAD_DIR to its path (e.g. /data/uploads),
-# otherwise uploads disappear on every deploy.
-app:
-  upload-dir: ${UPLOAD_DIR:upload-dir}
-
 # Brevo HTTP API Configuration (bypasses Railway outbound SMTP port blocks)
 brevo:
   api-key: ${BREVO_API_KEY}
@@ -118,6 +113,9 @@ springdoc:
 # First administrator, created at startup only when no admin exists yet. Set both variables
 # for the first deploy, sign in, then remove them. (Sign-up can never create an admin.)
 app:
+  # Where uploaded pictures are stored. Mount a Railway volume and set UPLOAD_DIR to its path
+  # (e.g. /data/uploads), otherwise uploads disappear on every deploy.
+  upload-dir: ${UPLOAD_DIR:upload-dir}
   bootstrap-admin:
     email: ${BOOTSTRAP_ADMIN_EMAIL:}
     password: ${BOOTSTRAP_ADMIN_PASSWORD:}
