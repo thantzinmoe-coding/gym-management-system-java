@@ -76,6 +76,8 @@ spring:
 # Bind to Railway's dynamic PORT (defaults to 8080 if not set)
 server:
   port: ${PORT:8080}
+  # Behind Railway's HTTPS proxy: build https:// links (image URLs) instead of http://
+  forward-headers-strategy: framework
   tomcat:
     threads:
       max: 25
@@ -85,6 +87,11 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
+
+# Where uploaded pictures are stored. Mount a Railway volume and set UPLOAD_DIR to its path (e.g. /data/uploads),
+# otherwise uploads disappear on every deploy.
+app:
+  upload-dir: ${UPLOAD_DIR:upload-dir}
 
 # Brevo HTTP API Configuration (bypasses Railway outbound SMTP port blocks)
 brevo:

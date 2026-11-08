@@ -26,8 +26,9 @@ public class LocalStorageService implements StorageService {
     private static final Logger log = LoggerFactory.getLogger(LocalStorageService.class);
     private final Path rootLocation;
 
-    public LocalStorageService() {
-        this.rootLocation = Paths.get("upload-dir");
+    // On Railway the container disk is wiped on every deploy: point UPLOAD_DIR at a mounted volume.
+    public LocalStorageService(@org.springframework.beans.factory.annotation.Value("${app.upload-dir:upload-dir}") final String uploadDir) {
+        this.rootLocation = Paths.get(uploadDir);
         init();
     }
 
