@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local-only files: secrets and user uploads must never be committed
+application-dev.yaml
+upload-dir/
+desktop.ini

@@ -1,0 +1,186 @@
+package org.java_proj.gym_management_system.common.util;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import org.java_proj.gym_management_system.common.service.EmailService;
+import org.java_proj.gym_management_system.model.UserDetail;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+@Component
+@RequiredArgsConstructor
+public class ServerUtil {
+
+    private final StringRedisTemplate redisTemplate;
+    private final EmailService emailService;
+
+    @Value("${jwt.secret}")
+    private String SecretKey;
+
+    private final long Access_Token_ExpireTime = 1000L * 60 * 60 * 24;
+
+    public String getSecretKey() {
+        return SecretKey;
+    }
+
+    public long getExpireTime() {
+        return Access_Token_ExpireTime;
+    }
+
+    public String generateNumericCode(int length) {
+        StringBuilder code = new StringBuilder();
+        // Codes guard accounts and password resets: use a cryptographically secure source.
+        SecureRandom random = new SecureRandom();
+
+        for (int i = 0; i < length; i++) {
+            int digit = random.nextInt(10); // generates a digit from 0 to 9
+            code.append(digit);
+        }
+
+        return code.toString();
+    }
+
+    public void sendCodeToEmail(final String email, final long EXPIRATION_MINUTES, final String templateName, final String redisPrefix) {
+        String resetCode = generateNumericCode(6);
+        redisTemplate.opsForValue().set(redisPrefix + email, resetCode, EXPIRATION_MINUTES, TimeUnit.MINUTES);
+        redisTemplate.delete("otp-attempts:" + redisPrefix + email); // a new code gets a fresh attempt budget
+        try {
+            sendEmail(email, resetCode, templateName);
+        } catch (IOException e) {
+            redisTemplate.delete(redisPrefix + email);
+            throw new IllegalStateException("Could not send the verification email. Please try again later.", e);
+        }
+    }
+
+    private void sendEmail(String email, String resetCode, String templateName) throws IOException {
+        String userName = email.split("@")[0];
+        String htmlTemplate = loadTemplate("templates/mailTemplates/" + templateName + ".html");
+        String htmlContent = htmlTemplate
+                .replace("{{username}}", userName)
+                .replace("{{code}}", resetCode);
+
+        final String subject = "verifyAccountMail".equals(templateName)
+                ? "Your GymManagementSystem verification code"
+                : "Your GymManagementSystem Password Reset Code";
+
+        this.emailService.sendEmail(email, subject, htmlContent);
+    }
+
+    public void sendTrainerAcceptEmail(String email, String trainerDashboardLink) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/trainer_accept.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", trainerDashboardLink);
+
+            this.emailService.sendEmail(email, "Welcome to Gym Management System - Trainer Acceptance", htmlContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendRejectEmail(String email, String name) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/trainer_reject.html");
+            String htmlContent = htmlTemplate.replace("{{username}}", name);
+
+            this.emailService.sendEmail(email, "Trainer Application Rejection - Gym Management System", htmlContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendBookingAcceptEmail(String email, String packageName, String startDate,
+                                       String duration, String trainerName) {
+        try {
+            String userName = email.split("@")[0];
+            String htmlTemplate = loadTemplate("templates/mailTemplates/booking_accept.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", userName)
+                    .replace("{{packageName}}", packageName)
+                    .replace("{{startDate}}", startDate)
+                    .replace("{{duration}}", duration)
+                    .replace("{{trainerName}}", trainerName != null ? trainerName : "Not Assigned");
+
+            this.emailService.sendEmail(email, "Booking Confirmation - Gym Management System", htmlContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendBookingRejectEmail(String email, String packageName, String name) {
+        try {
+            String htmlTemplate = loadTemplate("templates/mailTemplates/booking_reject.html");
+            String htmlContent = htmlTemplate
+                    .replace("{{username}}", name)
+                    .replace("{{packageName}}", packageName);
+
+            this.emailService.sendEmail(email, "Booking Rejection - Gym Management System", htmlContent);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String loadTemplate(String path) throws IOException {
+        ClassPathResource resource = new ClassPathResource(path);
+        // getFile() fails for resources inside the packaged jar (e.g. in Docker); read the stream.
+        try (InputStream in = resource.getInputStream()) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        }
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+
+        String roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+        claims.put("role", roles);
+
+        if (userDetails instanceof UserDetail customUserDetail) {
+            claims.put("userId", customUserDetail.getUser().getId());
+        }
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + Access_Token_ExpireTime))
+                .signWith(Keys.hmacShaKeyFor(SecretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        long refresh_Token_ExpireTime = 1000L * 60 * 720;
+        String roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+        claims.put("role", roles);
+        if (userDetails instanceof UserDetail customUserDetail) {
+            claims.put("userId", customUserDetail.getUser().getId());
+        }
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refresh_Token_ExpireTime))
+                .signWith(Keys.hmacShaKeyFor(SecretKey.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+}

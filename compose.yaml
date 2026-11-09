@@ -1,10 +1,65 @@
+# Spring Boot API + Mailpit (catches all outgoing email) for local development.
+#
+# Needs the database and redis stacks running on the shared gym-net network:
+#   docker network create gym-net        # once
+#   docker compose up -d --build         # from this folder
+#
+# API: http://localhost:8080   Swagger: http://localhost:8080/swagger-ui.html
+# Mailpit (verification codes, booking emails): http://localhost:8025
+#
+# Variables use a LOCAL_ prefix with local-only defaults. They must match the values used
+# by the database stack (LOCAL_DB_PASSWORD) and the ml stack (LOCAL_ML_API_KEY).
+
+name: gym-backend
+
 services:
-  mysql:
-    image: 'mysql:latest'
+  backend:
+    build: .
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
-      - 'MYSQL_PASSWORD=secret'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-      - 'MYSQL_USER=myuser'
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:mysql://mysql:3306/gym_management_system_db
+      DB_USERNAME: gym
+      DB_PASSWORD: ${LOCAL_DB_PASSWORD:-gym_local_password}
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: "1025"
+      SMTP_USERNAME: no-reply@gym.local
+      JWT_SECRET: ${LOCAL_JWT_SECRET:-local-docker-jwt-secret-change-me-0123456789abcdef}
+      MAX_METASPACE: 256m
+      # Keep expired packages (and their bookings) so the demo data and churn history survive.
+      GYM_PACKAGES_AUTO_DELETE_EXPIRED: "false"
+      ML_SERVICE_URL: http://ml-api:8000
+      ML_API_KEY: ${LOCAL_ML_API_KEY:-local-ml-api-key-change-me}
     ports:
-      - '3306'
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - uploads:/app/upload-dir
+    depends_on:
+      mailpit:
+        condition: service_started
+    # MySQL and Redis live in other stacks, so Compose cannot wait for them: if the
+    # backend starts first it exits and is restarted until they are reachable.
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/v3/api-docs > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "127.0.0.1:8025:8025"
+    restart: unless-stopped
+
+volumes:
+  uploads:
+    # Same volume as the earlier single-file setup, so uploaded images are kept.
+    name: gym-management-system_uploads
+
+networks:
+  default:
+    name: gym-net
+    external: true
