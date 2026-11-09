@@ -23,6 +23,18 @@ public interface StorageService {
     String store(MultipartFile file);
 
     /**
+     * Stores a file and returns the public URL to save in the database.
+     * Local storage links to this server's /files endpoint; cloud storage returns its own https link.
+     */
+    default String storeAndGetUrl(MultipartFile file) {
+        final String filename = store(file);
+        return org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/files/")
+                .path(filename)
+                .toUriString();
+    }
+
+    /**
      * Loads all available file paths.
      *
      * @return A List of Paths to the files.

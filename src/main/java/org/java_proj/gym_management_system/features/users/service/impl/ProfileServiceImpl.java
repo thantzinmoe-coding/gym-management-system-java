@@ -42,11 +42,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 
         if (file != null && !file.isEmpty()) {
-            String filename = storageService.store(file);
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/files/")
-                    .path(filename)
-                    .toUriString();
+            String fileUrl = storageService.storeAndGetUrl(file);
             profile.setProfilePic(fileUrl);
             this.profileRepository.save(profile);
             return fileUrl;
@@ -75,11 +71,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 
         if (file != null && !file.isEmpty()) {
-            String filename = storageService.store(file);
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/files/")
-                    .path(filename)
-                    .toUriString();
+            String fileUrl = storageService.storeAndGetUrl(file);
             profile.setProfilePic(fileUrl);
         } else {
             profile.setProfilePic(null); // or set a default image URL if you want

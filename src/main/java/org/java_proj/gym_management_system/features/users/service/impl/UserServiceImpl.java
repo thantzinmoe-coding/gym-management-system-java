@@ -104,12 +104,7 @@ public class UserServiceImpl implements UserService {
         final Profile profile = this.profileRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found for user ID: " + userId));
 
-        final String filename = storageService.store(file);
-
-        final String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/files/")
-                .path(filename)
-                .toUriString();
+        String fileUrl = storageService.storeAndGetUrl(file);
 
         profile.setProfilePic(fileUrl);
         this.profileRepository.save(profile);

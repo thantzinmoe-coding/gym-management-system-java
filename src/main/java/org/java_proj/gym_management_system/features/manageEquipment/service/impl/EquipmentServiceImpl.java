@@ -3,7 +3,7 @@ package org.java_proj.gym_management_system.features.manageEquipment.service.imp
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.java_proj.gym_management_system.common.storage.StorageService;
+import org.java_proj.gym_management_system.common.storage.StorageServiceFactory;
 import org.java_proj.gym_management_system.config.response.dto.ApiResponse;
 import org.java_proj.gym_management_system.config.response.dto.PaginatedApiResponse;
 import org.java_proj.gym_management_system.config.response.dto.PaginationMeta;
@@ -29,7 +29,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     private final EquipmentRepository equipmentRepository;
     private final ModelMapper modelMapper;
-    private final StorageService storageService;
+    private final StorageServiceFactory storageFactory;
 
     @Override
     @Transactional
@@ -42,11 +42,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         equipment.setNextMaintenanceDate(request.getNextMaintenanceDate());
 
         if (request.getEquipmentPhoto() != null && !request.getEquipmentPhoto().isEmpty()) {
-            String filename = storageService.store(request.getEquipmentPhoto());
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/files/")
-                    .path(filename)
-                    .toUriString();
+            String fileUrl = storageFactory.getConfiguredStorageService().storeAndGetUrl(request.getEquipmentPhoto());
             equipment.setEquipmentPhoto(fileUrl);
         }
 
@@ -136,11 +132,7 @@ public class EquipmentServiceImpl implements EquipmentService {
             if (request.getNextMaintenanceDate() != null) eq.setNextMaintenanceDate(request.getNextMaintenanceDate());
 
             if (request.getEquipmentPhoto() != null && !request.getEquipmentPhoto().isEmpty()) {
-                String filename = storageService.store(request.getEquipmentPhoto());
-                String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                        .path("/files/")
-                        .path(filename)
-                        .toUriString();
+                String fileUrl = storageFactory.getConfiguredStorageService().storeAndGetUrl(request.getEquipmentPhoto());
                 eq.setEquipmentPhoto(fileUrl);
             }
 

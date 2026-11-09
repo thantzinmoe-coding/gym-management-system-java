@@ -16,7 +16,7 @@ public class FileController {
 
     @Autowired
     public FileController(final StorageServiceFactory factory) {
-        this.storageService = factory.getConfiguredStorageService();
+        this.storageService = factory.getLocalStorageService();
     }
 
     @GetMapping("/{filename:.+}")

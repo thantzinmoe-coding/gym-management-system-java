@@ -119,3 +119,10 @@ app:
   bootstrap-admin:
     email: ${BOOTSTRAP_ADMIN_EMAIL:}
     password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+# Picture storage: with all three values set, uploads go to Cloudinary (free tier) and survive redeploys.
+# Without them pictures are kept on local disk (UPLOAD_DIR), which Railway wipes on every deploy.
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  folder: ${CLOUDINARY_FOLDER:gym}
