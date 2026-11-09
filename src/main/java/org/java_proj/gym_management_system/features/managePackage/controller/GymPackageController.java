@@ -150,7 +150,8 @@ public class GymPackageController {
             @RequestParam(value = "size", defaultValue = "20") int size,
             HttpServletRequest request
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(size, 100)),
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
         final PaginatedApiResponse<GymPackageResponseDto> response = this.gymPackageService.getAllGymPackages(pageable);
 
         return ResponseUtils.buildPaginatedResponse(request, response);
@@ -172,7 +173,8 @@ public class GymPackageController {
             @Parameter(description = "Page size")
             @RequestParam(value = "size", defaultValue = "20") int size,
             HttpServletRequest request) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(size, 100)),
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
         PaginatedApiResponse<GymPackageResponseDto> response = this.gymPackageService.getGymPackagesByType(type, pageable);
         return ResponseUtils.buildPaginatedResponse(request, response);
     }

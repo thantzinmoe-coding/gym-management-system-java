@@ -25,6 +25,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class ProfileServiceImpl implements ProfileService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
+    private final org.java_proj.gym_management_system.features.userDetailInfo.repository.UserDetailInfoRepository userDetailInfoRepository;
     private final ModelMapper modelMapper;
     private StorageService storageService;
 
@@ -62,12 +63,18 @@ public class ProfileServiceImpl implements ProfileService {
 
         // This endpoint is reachable before the first login (sign-up), so it may only
         // create a profile, never overwrite an existing one.
-        if (this.profileRepository.findByUser_Id(userId).isPresent()) {
+        // A profile saved by a setup that never got to its details step may be completed again;
+        // a finished account (profile + details) can never be overwritten.
+        final Profile unfinished = this.profileRepository.findByUser_Id(userId).orElse(null);
+        if (unfinished != null && this.userDetailInfoRepository.existsByUserIdAndStatus(userId, org.java_proj.gym_management_system.common.constant.Status.ACTIVE)) {
             throw new org.java_proj.gym_management_system.config.exceptions.DuplicateEntityException(
                     "A profile already exists for this account.");
         }
 
-        Profile profile = modelMapper.map(profileRequest, Profile.class);
+        Profile profile = unfinished != null ? unfinished : modelMapper.map(profileRequest, Profile.class);
+        if (unfinished != null) {
+            modelMapper.map(profileRequest, unfinished);
+        }
 
 
         if (file != null && !file.isEmpty()) {

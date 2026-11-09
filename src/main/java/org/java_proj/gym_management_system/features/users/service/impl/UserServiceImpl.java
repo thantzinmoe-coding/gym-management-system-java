@@ -33,7 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -73,7 +72,10 @@ public class UserServiceImpl implements UserService {
         final Role role = roleRepository.findByName(request.getRole())
                 .orElseThrow(() -> new EntityNotFoundException("Role not found."));
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // An account whose profile setup was never finished (the person verified the e-mail and left)
+        // is not "taken": signing up again with a fresh code resumes it instead of failing forever.
+        final User existing = userRepository.findByEmail(request.getEmail()).orElse(null);
+        if (existing != null && isSetupComplete(existing)) {
             throw new EntityCreationException("Email already exists.");
         }
         // Only addresses proven by the emailed code may register.
@@ -81,13 +83,11 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Please verify your email with the code we sent before registering.");
         }
 
-        User user = new User();
+        User user = existing != null ? existing : new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(role);
-        if (Objects.equals(role.getName(), "TRAINER")) {
-            user.setStatus(Status.PENDING);
-        }
+        user.setStatus(Objects.equals(role.getName(), "TRAINER") ? Status.PENDING : Status.ACTIVE);
 
         userRepository.save(user);
         otpGuard.clearEmailVerified(request.getEmail());
@@ -112,9 +112,20 @@ public class UserServiceImpl implements UserService {
         return fileUrl;
     }
 
+    /** Profile and details both exist (admins have neither and are always complete). */
+    private boolean hasFinishedSetup(Long userId) {
+        return profileRepository.findByUser_Id(userId).isPresent()
+                && userDetailInfoRepository.existsByUserIdAndStatus(userId, Status.ACTIVE);
+    }
+
+    private boolean isSetupComplete(User user) {
+        return user.getRole() != null && "ADMIN".equals(user.getRole().getName()) || hasFinishedSetup(user.getId());
+    }
+
     @Override
     public ApiResponse verifyEmail(String email) {
-        if (userRepository.existsByEmail(email)) {
+        final boolean taken = userRepository.findByEmail(email).map(this::isSetupComplete).orElse(false);
+        if (taken) {
             return new ApiResponse(0, 409, null, new HashMap<>(), "Email already exists.");
         }
         otpGuard.checkResendCooldown("verify-account:", email);
@@ -156,6 +167,17 @@ public class UserServiceImpl implements UserService {
 
         UserLoginProjection userData = userRepository.findUserLoginByEmail(requestDto.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("User not found with email " + requestDto.getEmail()));
+
+        // E-mail verified but profile setup never finished: no token yet, send the person back to the setup.
+        if (!"ADMIN".equals(userData.getRoleName()) && !hasFinishedSetup(userData.getId())) {
+            return ApiResponse.builder()
+                    .success(1)
+                    .code(200)
+                    .data(new LoginResponseDto(userData.getId(), userData.getEmail(), userData.getRoleName(),
+                            null, null, null, null, false))
+                    .message("Please finish setting up your profile.")
+                    .build();
+        }
 
         if ("TRAINER".equals(userData.getRoleName()) && "PENDING".equals(userData.getStatus())) {
             throw new UnauthorizedException("You can't login. Please wait for system Admin Approval.");
@@ -218,7 +240,8 @@ public class UserServiceImpl implements UserService {
                 token,
                 refreshToken,
                 profileResponse,
-                userDetailInfoResponseDto);
+                userDetailInfoResponseDto,
+                true);
 
         return ApiResponse.builder()
                 .success(1)

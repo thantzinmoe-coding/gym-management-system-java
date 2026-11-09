@@ -83,26 +83,25 @@ public class GymPackageServiceImpl implements GymPackageService {
         Page<GymPackage> page = gymPackageRepository.findAllGymPackages(pageable);
 
         List<GymPackageResponseDto> data = page.getContent().stream()
-                .map(gymPackage -> {
-                    GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
-
-                    // Get assigned trainer name (only ACTIVE)
-                    AssignedGymPackage assignment = gymPackage.getAssignedGymPackage();
-
-                    if (assignment != null && assignment.getStatus() == Status.ACTIVE) {
-                        User trainer = assignment.getTrainer();
-                        if (trainer != null) {
-                            dto.setTrainerId(trainer.getId());
-                            dto.setTrainerName(trainer.getProfile().getName());
-                        }
-                    }
-
-                    return dto;
-                })
+                .map(this::toDtoWithTrainer)
                 .toList();
 
 
         return getGymPackageResponseDtoPaginatedApiResponse(pageable, page, data);
+    }
+
+    /** The package plus the name of its (active) assigned trainer. */
+    private GymPackageResponseDto toDtoWithTrainer(GymPackage gymPackage) {
+        GymPackageResponseDto dto = modelMapper.map(gymPackage, GymPackageResponseDto.class);
+        AssignedGymPackage assignment = gymPackage.getAssignedGymPackage();
+        if (assignment != null && assignment.getStatus() == Status.ACTIVE) {
+            User trainer = assignment.getTrainer();
+            if (trainer != null) {
+                dto.setTrainerId(trainer.getId());
+                dto.setTrainerName(trainer.getProfile() != null ? trainer.getProfile().getName() : null);
+            }
+        }
+        return dto;
     }
 
     private PaginatedApiResponse<GymPackageResponseDto> getGymPackageResponseDtoPaginatedApiResponse(Pageable pageable, Page<GymPackage> page, List<GymPackageResponseDto> data) {
@@ -122,11 +121,12 @@ public class GymPackageServiceImpl implements GymPackageService {
 
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public PaginatedApiResponse<GymPackageResponseDto> getGymPackagesByType(GymPackageType type, Pageable pageable) {
         Page<GymPackage> page = this.gymPackageRepository.findByGymPackageType(type, pageable);
 
         List<GymPackageResponseDto> data = page.getContent().stream()
-                .map(gymPackage -> modelMapper.map(gymPackage, GymPackageResponseDto.class))
+                .map(this::toDtoWithTrainer)
                 .toList();
 
         return getGymPackageResponseDtoPaginatedApiResponse(pageable, page, data);

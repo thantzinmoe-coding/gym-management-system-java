@@ -17,4 +17,6 @@ public class LoginResponseDto {
     private String refreshToken;
     private ProfileResponseDto profile;
     private UserDetailInfoResponseDto userDetailInfoResponse;
+    /** false: the e-mail was verified but the profile setup was never finished (no token is issued yet). */
+    private boolean profileComplete;
 }

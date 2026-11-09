@@ -1,7 +1,9 @@
 package org.java_proj.gym_management_system.common.event;
 
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
+@Getter
 public class EmailEvent extends ApplicationEvent {
     private final String toEmail;
     private final String subject;
@@ -14,15 +16,4 @@ public class EmailEvent extends ApplicationEvent {
         this.body = body;
     }
 
-    public String getToEmail() {
-        return toEmail;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public String getBody() {
-        return body;
-    }
 }
